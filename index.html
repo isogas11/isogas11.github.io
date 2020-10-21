@@ -1,134 +1,299 @@
 <!DOCTYPE html>
-<html lang="en">
+<!-- <html lang="zh-hant"> -->
+<html lang="zn">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
-    <link rel="stylesheet" href="./css/global.css">
-    <link rel="stylesheet" href="./css/grid.css">
-    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="css/desktop.css">
+    <script src="https://kit.fontawesome.com/23e998a1cd.js" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    
+    <link rel="shortcut icon" href="#"/>
+    <script language="JavaScript">
+        $(function(){
+            $("nav").find("li").children().click(function(){
+                let target = $(this).data("target");
+                $("html,body").animate({
+                    scrollTop: $(target).offset().top
+                },1000)
+            })
+        })
+
+        function ShowTime() {
+            var mydate = new Date();
+            var onedate = mydate.toLocaleString('chinese', {
+                hour12: true
+            });
+            document.getElementById('showbox').innerHTML = onedate;
+            setTimeout('ShowTime()', 1000);
+        }
+        
+        $(window).scroll(function() {
+            var scrollVal = $(this).scrollTop();
+            var adscrtop = $("nav").offset().top;
+            // if (window.innerWidth > 767) {    //RWD 767以下寬不動作
+                if (scrollVal > 60) {
+                    $("nav").css({
+                        "position": "fixed",
+                        "top": "0px"
+                    });
+                } else {
+                    $("nav").css({
+                        "position": "absolute",
+                        "top": "60px",
+                        "z-index": "9"
+                    });
+                }
+            // }
+        });
+    </script>
 </head>
 
-<body>
-    <nav class="full-with">
-        <div class="fixed-width clearfix ">
-            <div class="logo">
-                <a href="#">logo</a>
+<body onload="ShowTime()">
+    <div id="nav-info" class="full-width">
+        <div class="fixed-width clearfix">
+            <div class="addr">
+                <div id="showbox"></div>
             </div>
-            <div class="menu">
+            <div class="donate">
+                <a href="#" class="nav-btn">Donate</a>
+            </div>
+            <div class="register nav-hover">
                 <ul>
-                    <li><a href="#">LINK 1</a></li>
-                    <li><a href="#">LINK 2</a></li>
-                    <li><a href="#">LINK 3</a></li>
-                    <li><a href="#">LINK 4</a></li>
-                    <li><a href="#">LINK 5</a></li>
+                    <li><a href="#">Register</a></li>
+                </ul>
+            </div>
+            <div class="register nav-hover">
+                <li><a href="#">Login</a></li>
+            </div>
+        </div>
+    </div>
+    <nav class="full-width clearfix">
+        <div class="fixed-width">
+            <div class="logo">
+                <a href="#">LOGO</a>
+            </div>
+            <div class="menu ">
+                <ul>
+                    <li><a href="#" data-target="#home" class="nav-hover">HOME</a></li>
+                    <li><a href="#" data-target="#feature" class="nav-hover">FEATURE</a></li>
+                    <li><a href="#" data-target="#events" class="nav-hover">EVENTS</a></li>
+                    <li><a href="#" data-target="#gallery" class="nav-hover">GALLERY</a></li>
+                    <li><a href="#" data-target="#upcoming" class="nav-hover">SERMONS</a></li>
+                    <li><a href="#" data-target="#blog" class="nav-hover">BLOG</a></li>
+                    <li><a href="#" data-target="#map" class="nav-hover">MAP</a></li>
                 </ul>
             </div>
         </div>
-        <header>
-            <h1>TITLE</h1>
-            <p>Lorem, ipsum dolor sit amet consectetur adipisicing elit. Ratione eius cum vero iure officia magni
-                adipisci exercitationem? Cumque, inventore quaerat.</p>
-            <a href="#" class="btn">MORE</a>
-        </header>
-        <div id="about" class="full-width">
-            <div class="fixed-width clearfix">
-                <div class="col-md-4">
-                    <h1>TITLE</h1>
-                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Nobis quibusdam perferendis repellendus
-                        minima excepturi neque temporibus nisi praesentium ducimus magnam.</p>
-                </div>
-                <div class="col-md-4">
-                    <h1>TITLE</h1>
-                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Nobis quibusdam perferendis repellendus
-                        minima excepturi neque temporibus nisi praesentium ducimus magnam.</p>
-                </div>
-                <div class="col-md-4">
-                    <h1>TITLE</h1>
-                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Nobis quibusdam perferendis repellendus
-                        minima excepturi neque temporibus nisi praesentium ducimus magnam.</p>
-                </div>
-            </div>
-        </div>
-        <div id="ad" class="full-width">
-            <div class="fixed-width clearfix">
-                <div class="col-md-9 ibc">
-                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Doloribus aspernatur ipsam accusantium
-                        cum deleniti possimus, consectetur sequi dolor perspiciatis earum corporis labore, id sint?
-                        ipsum dolor sit amet consectetur adipisicing elit. Doloribus aspernatur ipsam accusantium
-                        cum deleniti possimus, consectetur sequi dolor perspiciatis earum corporis labore, id sint?
-                        cum deleniti possimus, consectetur sequi dolor perspiciatis earum corporis labore, id sint?
-                        ipsum dolor sit amet consectetur adipisicing elit. Doloribus aspernatur ipsam accusantium
-                        cum deleniti possimus, consectetur sequi dolor perspiciatis earum corporis labore, id sint?
-                        Quaerat atque repellat laboriosam nulla rem.</p>
-                </div>
-                <div class="col-md-3 ibc">
-                    <a class="btn">gogogo</a>
-                </div>
-            </div>
-        </div>
-        <div id="service" class="full-width">
-            <div class="col-md-7 ibc">
-                <h2>TITLE</h2>
-                <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Facere accusamus error, unde sed pariatur
-                    molestias eaque saepe quas itaque eos?</p>
-                <a href="#" class="btn">MORE</a>
-            </div>
-            <div class="col-md-5 ibc">
-                <img src="https://source.unsplash.com/random/600x400" alt="">
-            </div>
-        </div>
-        <div id="service-2" class="full-width">
-            <div class="col-md-5 ibc">
-                <img src="https://source.unsplash.com/random/600x400?sig=2" alt="">
-            </div>
-            <div class="col-md-7 ibc">
-                <h2>TITLE</h2>
-                <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Facere accusamus error, unde sed pariatur
-                    molestias eaque saepe quas itaque eos?</p>
-                <a href="#" class="btn">MORE</a>
-            </div>
-        </div>
-        <div id="map" class="full-width">
-            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d463221.0266732086!2d120.88303363565758!3d24.900905700000003!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346830507774e449%3A0xac0beb7e28b1e23f!2z5oiR5a6254mb5o6S!5e0!3m2!1szh-TW!2stw!4v1542251826164"
-                width="1200px" height="450" frameborder="0" style="border:0" allowfullscreen></iframe>
-        </div>
-        <footer class="full-width clearfix list">
-            <div class="col-md-3">
-                <div>list</div>
-                <div>list</div>
-                <div>list</div>
-                <div>list</div>
-                <div>list</div>
-            </div>
-            <div class="col-md-3">
-                <div>list</div>
-                <div>list</div>
-                <div>list</div>
-                <div>list</div>
-                <div>list</div>
-            </div>
-            <div class="col-md-3">
-                <div>list</div>
-                <div>list</div>
-                <div>list</div>
-                <div>list</div>
-                <div>list</div>
-            </div>
-            <div class="col-md-3">
-                <div>list</div>
-                <div>list</div>
-                <div>list</div>
-                <div>list</div>
-                <div>list</div>
-            </div>
-        </footer>
-        <div id="copyright" class="full-width">
-                2018 © All Rights Reserved
-            </div>
     </nav>
+    <header id="home" class="gull-width"></header>
+    <div id="feature" class="full-width clearfix">
+        <div class="fixed-width">
+            <div class="col-7">
+                <div class="col-12">
+                    <div class="col-2 line"></div>
+                    <h2 class="col-10">WHY OUR CHURCH</h2>
+                </div>
+                <div class="col-2"></div>
+                <div class="col-10">
+                    <H3>Lorem ipsum dolor sit amet consectetur adipisicing elit. Magni, laboriosam ratione. At, deleniti nulla!
+                    </H3>
+                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Mollitia nam quaerat nostrum atque, aperiam commodi expedita quia, sit distinctio saepe, aliquam quasi molestias culpa odio ex modi quisquam? Consequatur nihil dolore pariatur
+                        inventore dolorum itaque voluptatem. Reprehenderit nulla beatae provident assumenda nostrum iste earum.</p>
+                    <a href="#" class="btn">More</a>
+                </div>
+            </div>
+            <div class="col-5"><img src="images/feature.jpg" alt=""></div>
+        </div>
+    </div>
+    <div id="events" class="full-width">
+        <div class="fixed-width clearfix">
+            <div class="col-4">
+                <h2>Title</h2>
+                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. At qui est incidunt aliquid iusto eius corrupti accusantium deleniti. Odio, impedit numquam, quidem velit facilis eum, amet suscipit atque ad temporibus architecto voluptates id.</p>
+                <a href="#" class="btn">More</a>
+            </div>
+            <div class="col-4">
+                <h2>Title</h2>
+                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. At qui est incidunt aliquid iusto eius corrupti accusantium deleniti. Odio, impedit numquam, quidem velit facilis eum, amet suscipit atque ad temporibus architecto voluptates id.</p>
+                <a href="#" class="btn">More</a>
+            </div>
+            <div class="col-4">
+                <h2>Title</h2>
+                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. At qui est incidunt aliquid iusto eius corrupti accusantium deleniti. Odio, impedit numquam, quidem velit facilis eum, amet suscipit atque ad temporibus architecto voluptates id.</p>
+                <a href="#" class="btn">More</a>
+            </div>
+        </div>
+    </div>
+    <div id="gallery" class="full-width ">
+        <div class="fixed-width clearfix">
+            <div class="col-7">
+                <div class="col-2 line"></div>
+                <h2 class="col-10 ">FROM THE GALLERY</h2>
+            </div>
+        </div>
+        <div class="fixed-width clearfix">
+            <div class="col-4 ">
+                <img src="https://via.placeholder.com/400x820" alt="">
+            </div>
+            <div class="col-8 nopa">
+                <div class="col-6">
+                    <img src="https://via.placeholder.com/400x400" alt="">
+                </div>
+                <div class="col-6">
+                    <img src="https://via.placeholder.com/400x400" alt="">
+                </div>
+                <div class="col-6 ">
+                    <img src="https://via.placeholder.com/400x400" alt="">
+                </div>
+                <div class="col-6">
+                    <img src="https://via.placeholder.com/400x400" alt="">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="upcoming" class="full-width">
+        <div class="fixed-width clearfix">
+            <div class="col-7">
+                <div class="col-2 line-light"></div>
+                <h2 class="col-10 ">UPCOMING EVENTS</h2>
+            </div>
+        </div>
+        <div class="fixed-width clearfix">
+            <div class="col-1">
+                <div class="date">
+                    <div class="day">12 <br>Jan</div>
+                </div>
+            </div>
+            <div class="col-11">
+                <div class="content clearfix">
+                    <div class="title">Developing A Spiritual Mentailty</div>
+                    <div class="time">
+                        Tuesday to Wednesday
+                    </div>
+                    <div class="addr">
+                        Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolore, earum esse!
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="fixed-width clearfix">
+            <div class="col-1">
+                <div class="date">
+                    <div class="day">22 <br>Feb</div>
+                </div>
+            </div>
+            <div class="col-11">
+                <div class="content clearfix">
+                    <div class="title">The Five Points Of Gospel Truth</div>
+                    <div class="time">
+                        Tuesday to Wednesday
+                    </div>
+                    <div class="addr">
+                        Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolore, earum esse!
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="fixed-width clearfix">
+            <div class="col-1">
+                <div class="date">
+                    <div class="day">8 <br>Map</div>
+                </div>
+            </div>
+            <div class="col-11">
+                <div class="content clearfix">
+                    <div class="title">You Must Know God's Design For</div>
+                    <div class="time">
+                        Tuesday to Wednesday
+                    </div>
+                    <div class="addr">
+                        Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolore, earum esse!
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="blog" class="full-width">
+        <div class="fixed-width clearfix">
+            <div class="col-7">
+                <div class="col-2 line"></div>
+                <h2 class="col-10 ">From the blog</h2>
+            </div>
+        </div>
+        <div class="fixed-width ">
+            <div class="col-4">
+                <div class="pic">
+                    <img src="images/img01.jpg" alt="">
+                    <div class="date">
+                        <div class="day">12<br>Feb</div>
+                    </div>
+                </div>
+                <h3>
+                    Lorem ipsum dolor sit amet.
+                </h3>
+                <p>
+                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Est libero quaerat explicabo eligendi, cum magni architecto quisquam ad amet, facilis consequuntur rerum.
+                </p>
+                <a href="#" class="btn">More</a>
+            </div>
+        </div>
+        <div class="fixed-width ">
+            <div class="col-4">
+                <div class="pic">
+                    <img src="images/img02.jpg" alt="">
+                    <div class="date">
+                        <div class="day">9<br>Oct</div>
+                    </div>
+                </div>
+                <h3>
+                    Lorem ipsum dolor sit amet.
+                </h3>
+                <p>
+                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Est libero quaerat explicabo eligendi, cum magni architecto quisquam ad amet, facilis consequuntur rerum.
+                </p>
+                <a href="#" class="btn">More</a>
+            </div>
+        </div>
+        <div class="fixed-width ">
+            <div class="col-4">
+                <div class="pic">
+                    <img src="images/cat.jpg" alt="">
+                    <div class="date">
+                        <div class="day">2<br>Dec</div>
+                    </div>
+                </div>
+                <h3>
+                    Lorem ipsum dolor sit amet.
+                </h3>
+                <p>
+                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Est libero quaerat explicabo eligendi, cum magni architecto quisquam ad amet, facilis consequuntur rerum.
+                </p>
+                <a href="#" class="btn">More</a>
+            </div>
+        </div>
+    </div>
+    <div id="map" class="full-width">
+        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3618.86063439125!2d121.04181045026414!3d24.902734983955682!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346830501e414b2f%3A0xab38acf185905223!2z5rmW5Y-j6LuK56uZ!5e0!3m2!1szh-TW!2stw!4v1600433944753!5m2!1szh-TW!2stw"
+            width="100%" height="300" frameborder="0" style="border:0;" allowfullscreen="" aria-hidden="false" tabindex="0"></iframe>
+    </div>
+    <footer class="full-width">
+        <div class="fixed-width  clearfix">
+            <div class="col-8">
+                Learning By Design&trade; 2020
+            </div>
+            <div class="col-4">
+                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <a href="#"><i class="fab fa-twitch"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-github-alt"></i></a>
+            </div>
+        </div>
+    </footer>
 </body>
 
 </html>
