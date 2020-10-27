@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<!-- <html lang="zh-hant"> -->
+<html lang="zn">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="css/desktop.css">
+    <script src="https://kit.fontawesome.com/23e998a1cd.js" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    
+    <link rel="shortcut icon" href="#"/>
+    <script language="JavaScript">
+        $(function(){
+            $("nav").find("li").children().click(function(){
+                let target = $(this).data("target");
+                let nav_height = parseInt($(this).css("height"));
+                $("html,body").stop().animate({
+                    scrollTop: $(target).offset().top -nav_height
+                },1000)
+            })
+        })
+
+        function ShowTime() {
+            var mydate = new Date();
+            var onedate = mydate.toLocaleString('chinese', {
+                hour12: true
+            });
+            document.getElementById('showbox').innerHTML = onedate;
+            setTimeout('ShowTime()', 1000);
+        }
+        
+        $(window).scroll(function(aaa) {
+            var scrollVal = $(this).scrollTop();
+            var adscrtop = $("nav").offset().top;
+            // if (window.innerWidth > 767) {    //RWD 767以下寬不動作
+                if (scrollVal > 60) {
+                    $("nav").css({
+                        "position": "fixed",
+                        "top": "0px",
+                        "background-color": "rgb(255, 255, 255)"
+                    });
+                    $(".nav-hover").addClass("scroll-hover");
+                } else  {
+                    $("nav").css({
+                        "position": "absolute",
+                        "top": "60px",
+                        "z-index": "2",
+                        "background-color": "rgba(255, 255, 255,.6)"
+                    });
+                    $(".nav-hover").removeClass("scroll-hover");
+                }
+            // }
+        });
+    </script>
+</head>
+
+<body onload="ShowTime()">
+    <div id="nav-info" class="full-width">
+        <div class="fixed-width clearfix">
+            <div class="addr">
+                <div id="showbox"></div>
+            </div>
+            <div class="back">
+                <a href="../index.html" class="nav-btn">返回</a>
+            </div>
+            <div class="register nav-hover">
+                <ul>
+                    <li><a href="#">Register</a></li>
+                </ul>
+            </div>
+            <div class="register nav-hover">
+                <li><a href="#">Login</a></li>
+            </div>
+        </div>
+    </div>
+    <nav class="full-width clearfix">
+        <div class="fixed-width">
+            <div class="logo">
+                <a href="#">LOGO</a>
+            </div>
+            <div class="menu ">
+                <ul>
+                    <li><a href="#" data-target="#home" class="nav-hover">HOME</a></li>
+                    <li><a href="#" data-target="#feature" class="nav-hover">FEATURE</a></li>
+                    <li><a href="#" data-target="#events" class="nav-hover">EVENTS</a></li>
+                    <li><a href="#" data-target="#gallery" class="nav-hover">GALLERY</a></li>
+                    <li><a href="#" data-target="#upcoming" class="nav-hover">SERMONS</a></li>
+                    <li><a href="#" data-target="#blog" class="nav-hover">BLOG</a></li>
+                    <li><a href="#" data-target="#map" class="nav-hover">MAP</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <header id="home" class="gull-width"></header>
+    <div id="feature" class="full-width clearfix">
+        <div class="fixed-width">
+            <div class="col-7">
+                <div class="col-12">
+                    <div class="col-2 line"></div>
+                    <h2 class="col-10">WHY OUR CHURCH</h2>
+                </div>
+                <div class="col-2"></div>
+                <div class="col-10">
+                    <H3>Lorem ipsum dolor sit amet consectetur adipisicing elit. Magni, laboriosam ratione. At, deleniti nulla!
+                    </H3>
+                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Mollitia nam quaerat nostrum atque, aperiam commodi expedita quia, sit distinctio saepe, aliquam quasi molestias culpa odio ex modi quisquam? Consequatur nihil dolore pariatur
+                        inventore dolorum itaque voluptatem. Reprehenderit nulla beatae provident assumenda nostrum iste earum.</p>
+                    <a href="#" class="btn">More</a>
+                </div>
+            </div>
+            <div class="col-5"><img src="images/feature.jpg" alt=""></div>
+        </div>
+    </div>
+    <div id="events" class="full-width">
+        <div class="fixed-width clearfix">
+            <div class="col-4">
+                <h2>Title</h2>
+                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. At qui est incidunt aliquid iusto eius corrupti accusantium deleniti. Odio, impedit numquam, quidem velit facilis eum, amet suscipit atque ad temporibus architecto voluptates id.</p>
+                <a href="#" class="btn">More</a>
+            </div>
+            <div class="col-4">
+                <h2>Title</h2>
+                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. At qui est incidunt aliquid iusto eius corrupti accusantium deleniti. Odio, impedit numquam, quidem velit facilis eum, amet suscipit atque ad temporibus architecto voluptates id.</p>
+                <a href="#" class="btn">More</a>
+            </div>
+            <div class="col-4">
+                <h2>Title</h2>
+                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. At qui est incidunt aliquid iusto eius corrupti accusantium deleniti. Odio, impedit numquam, quidem velit facilis eum, amet suscipit atque ad temporibus architecto voluptates id.</p>
+                <a href="#" class="btn">More</a>
+            </div>
+        </div>
+    </div>
+    <div id="gallery" class="full-width ">
+        <div class="fixed-width clearfix">
+            <div class="col-7">
+                <div class="col-2 line"></div>
+                <h2 class="col-10 ">FROM THE GALLERY</h2>
+            </div>
+        </div>
+        <div class="fixed-width clearfix">
+            <div class="col-4 ">
+                <img src="https://via.placeholder.com/400x820" alt="">
+            </div>
+            <div class="col-8 nopa">
+                <div class="col-6">
+                    <img src="https://via.placeholder.com/400x400" alt="">
+                </div>
+                <div class="col-6">
+                    <img src="https://via.placeholder.com/400x400" alt="">
+                </div>
+                <div class="col-6 ">
+                    <img src="https://via.placeholder.com/400x400" alt="">
+                </div>
+                <div class="col-6">
+                    <img src="https://via.placeholder.com/400x400" alt="">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="upcoming" class="full-width">
+        <div class="fixed-width clearfix">
+            <div class="col-7">
+                <div class="col-2 line-light"></div>
+                <h2 class="col-10 ">UPCOMING EVENTS</h2>
+            </div>
+        </div>
+        <div class="fixed-width clearfix">
+            <div class="col-1">
+                <div class="date">
+                    <div class="day">12 <br>Jan</div>
+                </div>
+            </div>
+            <div class="col-11">
+                <div class="content clearfix">
+                    <div class="title">Developing A Spiritual Mentailty</div>
+                    <div class="time">
+                        Tuesday to Wednesday
+                    </div>
+                    <div class="addr">
+                        Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolore, earum esse!
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="fixed-width clearfix">
+            <div class="col-1">
+                <div class="date">
+                    <div class="day">22 <br>Feb</div>
+                </div>
+            </div>
+            <div class="col-11">
+                <div class="content clearfix">
+                    <div class="title">The Five Points Of Gospel Truth</div>
+                    <div class="time">
+                        Tuesday to Wednesday
+                    </div>
+                    <div class="addr">
+                        Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolore, earum esse!
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="fixed-width clearfix">
+            <div class="col-1">
+                <div class="date">
+                    <div class="day">8 <br>Map</div>
+                </div>
+            </div>
+            <div class="col-11">
+                <div class="content clearfix">
+                    <div class="title">You Must Know God's Design For</div>
+                    <div class="time">
+                        Tuesday to Wednesday
+                    </div>
+                    <div class="addr">
+                        Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolore, earum esse!
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="blog" class="full-width">
+        <div class="fixed-width clearfix">
+            <div class="col-7">
+                <div class="col-2 line"></div>
+                <h2 class="col-10 ">From the blog</h2>
+            </div>
+        </div>
+        <div class="fixed-width ">
+            <div class="col-4">
+                <div class="pic">
+                    <img src="images/img01.jpg" alt="">
+                    <div class="date">
+                        <div class="day">12<br>Feb</div>
+                    </div>
+                </div>
+                <h3>
+                    Lorem ipsum dolor sit amet.
+                </h3>
+                <p>
+                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Est libero quaerat explicabo eligendi, cum magni architecto quisquam ad amet, facilis consequuntur rerum.
+                </p>
+                <a href="#" class="btn">More</a>
+            </div>
+        </div>
+        <div class="fixed-width ">
+            <div class="col-4">
+                <div class="pic">
+                    <img src="images/img02.jpg" alt="">
+                    <div class="date">
+                        <div class="day">9<br>Oct</div>
+                    </div>
+                </div>
+                <h3>
+                    Lorem ipsum dolor sit amet.
+                </h3>
+                <p>
+                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Est libero quaerat explicabo eligendi, cum magni architecto quisquam ad amet, facilis consequuntur rerum.
+                </p>
+                <a href="#" class="btn">More</a>
+            </div>
+        </div>
+        <div class="fixed-width ">
+            <div class="col-4">
+                <div class="pic">
+                    <img src="images/cat.jpg" alt="">
+                    <div class="date">
+                        <div class="day">2<br>Dec</div>
+                    </div>
+                </div>
+                <h3>
+                    Lorem ipsum dolor sit amet.
+                </h3>
+                <p>
+                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Est libero quaerat explicabo eligendi, cum magni architecto quisquam ad amet, facilis consequuntur rerum.
+                </p>
+                <a href="#" class="btn">More</a>
+            </div>
+        </div>
+    </div>
+    <div id="map" class="full-width">
+        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3618.86063439125!2d121.04181045026414!3d24.902734983955682!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x346830501e414b2f%3A0xab38acf185905223!2z5rmW5Y-j6LuK56uZ!5e0!3m2!1szh-TW!2stw!4v1600433944753!5m2!1szh-TW!2stw"
+            width="100%" height="300" frameborder="0" style="border:0;" allowfullscreen="" aria-hidden="false" tabindex="0"></iframe>
+    </div>
+    <footer class="full-width">
+        <div class="fixed-width  clearfix">
+            <div class="col-8">
+                Learning By Design&trade; 2020
+            </div>
+            <div class="col-4">
+                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <a href="#"><i class="fab fa-twitch"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-github-alt"></i></a>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>

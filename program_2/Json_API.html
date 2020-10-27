@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="css/jsonApi.css">
+    <script>
+        $(function () {
+            $("#city").change(function () {
+                $(".weather").empty();
+                $("#sec").remove();
+                let city = $("#city").val();
+                $.ajax({
+                    url: "http://api.openweathermap.org/data/2.5/weather",
+                    data: {
+                        q: city,
+                        appid: "b1ecbccd638b763d489602917ba47cc3",
+                        units: "metric", //攝氏
+                        lang: "zh_TW"
+                    },
+                    success: function (data) {
+                        let temp = data.main.temp;
+                        let desc = data.weather[0].description;
+                        let wind_speed = data.wind.speed;
+                        let main_humidity = data.main.humidity;
+                        
+                        let sunrise = new Date(data.sys.sunrise);
+                        let sunrise_hours = sunrise.getHours();
+                        let sunrise_mins = sunrise.getMinutes();
+                        let sunrise_seconds = sunrise.getSeconds();
+                        
+                        let sunset = new Date(data.sys.sunset * 1000);
+                        let sunset_hours = sunset.getHours();
+                        let sunset_mins = sunset.getMinutes();
+                        let sunset_seconds = sunset.getSeconds();
+                        let content = `
+                            <h2>今日${city}的天氣</h2>
+                            <div>氣溫：${temp}°C</div>
+                            <div>濕度：${main_humidity} %</div>
+                            <div>風速：${wind_speed} m/s</div>
+                            <div>天氣狀況：${desc}</div>
+                            <div>日出時間：${sunrise_hours}:${sunrise_mins}:${sunrise_seconds}</div>
+                            <div>日落時間：${sunset_hours}:${sunset_mins}:${sunset_seconds}</div>
+                            `
+                        $(".weather").append(content);
+
+                    },
+
+                    error: function () {
+                        console.log("error");
+                    }
+                })
+            });
+
+        })
+    </script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="back">
+            <a href="../index.html" class="btn">返回</a>
+        </div>
+        <div class="weather"></div>
+        <select id="city">
+            <option id="sec">請選擇</option>
+            <option value="Taipei">臺北</option>
+            <option value="Taoyuan">桃園</option>
+            <option value="Hsinchu">新竹</option>
+            <option value="Miaoli">苗栗</option>
+            <option value="Taichung">台中</option>
+            <option value="Kaohsiung">高雄</option>
+            <option value="London">倫敦</option>
+            <option value="Tokyo">東京</option>
+        </select>
+        <div><a class="from" href="https://openweathermap.org/current">資料來源：OpenWeather</a></div>
+        <br>
+        <div class="clearfix"></div>
+        <hr>
+    </div>
+
+    <script>
+        function cbfunc(data) {
+            document.write(`
+            <div class="title"><h1>臺北市隧道資訊</h1></div>
+            <div class="container"><a href="https://data.taipei/#/dataset/detail?id=c493d546-420c-49f2-b992-af058252f293">資料來源：臺北市資料大平台</a></div>
+            `
+            );
+            data.forEach(function (d) {
+                let ID = d.ID;
+                let BuildEngineers = d.BuildEngineers;
+                let DesignEngineers = d.DesignEngineers;
+                let Route = d.Route;
+                let Town = d.Town;
+                let tunnel_name = d.tunnel_name;
+                let content = `
+                    <div class="content">
+                            <p>編號：${ID}</p>
+                            <p>營造公司：${BuildEngineers}</p>
+                            <p>設計公司：${DesignEngineers}</p>
+                            <p>隧道名稱：${tunnel_name}</p>
+                            <p>區域：${Town}</p>
+                            <p>路線：${Route}</p>
+                    </div>
+                    `
+                document.write(content);
+            })
+        }
+    </script>
+    <!-- <script src="https://json2jsonp.com/?url=http://domain.com/some/json&callback=cbfunc"></script> -->
+    <script
+        src="https://json2jsonp.com/?url=https://tpnco.blob.core.windows.net/blobfs/Tunnels.json&callback=cbfunc">
+    </script>
+
+
+</body>
+
+</html>

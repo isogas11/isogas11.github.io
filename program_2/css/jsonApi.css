@@ -1,0 +1,56 @@
+* {
+    box-sizing: border-box;
+    text-decoration-line: none;
+}
+.clearfix::after {
+    content: "";
+    display: block;
+    clear: both;
+    top: 200px;
+}
+.content {
+    width: 350px;
+    border: 1px solid #000;
+    margin: 10px;
+    padding-left: 20px;
+    display: inline-block;
+}
+.title{
+    text-align: center;
+}
+.container a{
+    margin: 10px;
+}
+#city{
+    float: left;
+    width: 100px;
+    height: 30px;
+    margin-top: 10px;
+    /* display: block; */
+}
+.weather{
+    float: left;
+    margin: 10px;
+    margin-bottom: 50px;
+    height: 220px;
+    width: 300px;
+    border: 1px solid #000;
+    padding-left: 30px;
+    border-radius: 2%;
+    
+}
+.from{
+    position: absolute;
+    top: 240px;
+    left: 10px;
+}
+.back{
+    float: right; 
+    font-size: 20px;
+}
+.btn {
+    background-color: #ff7b47;
+    color: #fff;
+    width: 100px;
+    padding: 8px 15px;
+}

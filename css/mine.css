@@ -1,0 +1,50 @@
+*{
+    box-sizing: border-box;
+    font-family: "微軟正黑體";
+}
+body{
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+.clearfix::after{
+    content:"";
+    display: block;
+    clear: both;
+}
+.mx{
+    margin-right: 0;
+    margin-left: 0;
+    margin: 0 auto;
+}
+.mypic{
+    width: 100px;
+    border-radius: 45%;
+    margin: 20px auto;
+}
+.pic {
+    width: 250px; 
+    height: 100%;
+    border: 1px solid #ccc;
+    /* border-right-style: none; */
+    top: 0;
+    bottom: 0;
+    margin: auto;
+    margin-right: 1%;
+    transition: all 0.3s;
+    transform-origin: right;
+}
+.pic:hover {
+    z-index: 9;
+    transform: scale(1.5);
+}
+.icon{
+    float: left;
+    width: calc(100%/12*6);
+    padding: 10px 20%;
+}
+.btn {
+    background-color: #ff7b47;
+    color: #fff;
+    width: 100px;
+    padding: 8px 15px;
+}
