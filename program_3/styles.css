@@ -1,0 +1,81 @@
+body {
+    width: 1600px;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f8ff;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+}
+
+#game-container {
+    position: relative;
+    height: 100vh;
+    background-color: #add8e6;
+    overflow: hidden;
+}
+
+#player {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    background-color: #ff4500;
+    border-radius: 50%;
+}
+
+#stairs-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.stair {
+    position: absolute;
+    width: 5%;
+    height: 2%;
+    background-color: #4682b4;
+}
+
+.stair.spike {
+    background-color: #8b0000; /* 地刺樓梯顏色 */
+    border: 2px solid black;
+}
+
+#score {
+    position: absolute;
+    top: 40px;
+    left: 10px;
+    font-size: 20px;
+    color: #ffffff;
+}
+
+#health-bar {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 200px;
+    height: 20px;
+    border: 1px solid #000;
+    background-color: #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: Arial, sans-serif;
+    z-index: 10;  /* 确保血条显示在顶部 */
+}
+
+#health-bar-fill {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(to right, #ff0000, #00ff00);
+    position: absolute;
+    z-index: 5;  /* 确保填充条在数字下方 */
+}
+
+#health-text {
+    position: absolute;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    z-index: 15; /* 确保血量数字显示在血条填充条之上 */
+}
+
