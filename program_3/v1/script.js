@@ -15,15 +15,17 @@ let isGameOver = false;
 let health = 10000;                                 // 初始生命值
 let moveLeft = false;
 let moveRight = false;
-const moveSpeed = 5; // 玩家水平移動速度
-let stairSpeed = 2; // 樓梯上升速度
+let deltaTime = null;
+let lastTime = new Date();
+let moveSpeed = 6; // 玩家水平移動速度
+let stairSpeed = 3; // 樓梯上升速度
 let createstairSpeed= 100;// 樓梯生成間隔速度
 player.style.left = `${playerX}px`;
 player.style.top = `${playerY}px`;
 
 // ** 創建初始樓梯 **
 function createInitialStair() {
-    const stair = document.createElement("div");
+    let stair = document.createElement("div");
     stair.classList.add("stair");
     stair.style.left = `${playerX }px`; // 與玩家對齊
     stair.style.bottom = `${gameContainer.offsetHeight / 220}px`; // 適當位置
@@ -33,7 +35,7 @@ function createInitialStair() {
 
 // 創建樓梯
 function createStair() {
-    const stair = document.createElement("div");
+    let stair = document.createElement("div");
     stair.classList.add("stair");
 
     // 隨機決定樓梯類型
@@ -48,7 +50,7 @@ function createStair() {
 }
 
 // 移動樓梯
-function moveStairs() {
+function moveStairs(deltaTime) {
     stairs.forEach((stair, index) => {
         const bottom = parseFloat(stair.style.bottom);
         if (bottom > gameContainer.offsetHeight) {
@@ -57,7 +59,7 @@ function moveStairs() {
             score++;
             scoreDisplay.textContent = `分數: ${score}`; // 顯示分數
         } else {
-            stair.style.bottom = bottom + stairSpeed + "px";
+            stair.style.bottom = bottom + (stairSpeed * (deltaTime / 16)) + "px"; // 調整樓梯上升速度
         }
     });
 }
@@ -67,7 +69,7 @@ let lastHealth = health; // 追蹤上一次的健康值
 // 更新血條
 function updateHealthBar() {
     if (health !== lastHealth) { // 只有在健康值改變時才更新
-        const healthPercentage = (health / 10000) * 100;
+        let healthPercentage = (health / 10000) * 100;
         healthBarFill.style.width = `${Math.max(0, healthPercentage)}%`; // 更新血條寬度
         healthText.textContent = `${health}`; // 更新血量數字
         lastHealth = health; // 更新追蹤值
@@ -81,8 +83,8 @@ function checkCollision() {
     let isOnStair = false;
 
     stairs.forEach(stair => {
-        const stairRect = stair.getBoundingClientRect();
-        const playerRect = player.getBoundingClientRect();
+        let stairRect = stair.getBoundingClientRect();
+        let playerRect = player.getBoundingClientRect();
 
         // 碰撞檢測：玩家是否與樓梯重疊
         if (
@@ -120,7 +122,7 @@ function checkCollision() {
     if(score > stairSpeed ** 2 * 10){
         stairSpeed += 0.1;
         if(createstairSpeed > 20)
-            createstairSpeed -= 20;
+            createstairSpeed -= 10;
     }
 
     if (playerY > gameContainer.offsetHeight || health <= 0) {
@@ -129,12 +131,12 @@ function checkCollision() {
 }
 
 // 玩家移動
-function movePlayer() {
+function movePlayer(deltaTime) {
     if (moveLeft) {
-        playerX -= moveSpeed;
+        playerX -= moveSpeed * (deltaTime / 16); // 假設每幀約為 16ms
     }
     if (moveRight) {
-        playerX += moveSpeed;
+        playerX += moveSpeed * (deltaTime / 16);
     }
 
     // 限制玩家不超出遊戲區域
@@ -150,13 +152,17 @@ function resetSpikeStatus() {
 // 遊戲主循環
 function gameLoop() {
     if (isGameOver) {
-        alert(`遊戲結束！您的分數是 ${score}`);
+        alert(`遊戲結束！您的分數是 ${deltaTime}`);
+        //alert(`遊戲結束！您的分數是 ${score}`);
         window.location.reload();
         return;
     }
     
-    movePlayer();  // 更新玩家位置
-    moveStairs();  // 更新樓梯位置
+    deltaTime = new Date() - lastTime; // 計算時間增量
+    lastTime = new Date(); // 更新 lastTime
+
+    movePlayer(deltaTime);  // 更新玩家位置
+    moveStairs(deltaTime);  // 更新樓梯位置
     checkCollision(); // 確認碰撞
 
     playerY += velocityY; // 更新玩家垂直位置
@@ -165,8 +171,8 @@ function gameLoop() {
 
     // 如果玩家已經超過樓梯區域，重置地刺區域的標誌
     stairs.forEach(stair => {
-        const stairRect = stair.getBoundingClientRect();
-        const playerRect = player.getBoundingClientRect();
+        let stairRect = stair.getBoundingClientRect();
+        let playerRect = player.getBoundingClientRect();
         if (playerRect.bottom < stairRect.top) {
             resetSpikeStatus();
         }
