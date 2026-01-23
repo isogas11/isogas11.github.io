@@ -2,265 +2,224 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>深淵獵手：奧術維度 v6.2 - 大地圖版</title>
+    <title>深淵獵手：奧術維度 v7.0</title>
     <style>
-        :root { --bg: #050505; --ui: #1a1a1a; --border: #3498db; --accent: #f1c40f; }
-        body { background: var(--bg); color: #eee; font-family: '微軟正黑體', sans-serif; display: flex; flex-direction: column; align-items: center; margin: 0; overflow: hidden; }
-        .game-layout { display: flex; gap: 15px; padding: 10px; width: 100vw; height: 100vh; box-sizing: border-box; justify-content: center; }
-        .sidebar { width: 320px; background: var(--ui); padding: 15px; border: 2px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; height: 95%; }
-        .stat-line { font-size: 14px; line-height: 1.6; border-bottom: 1px solid #333; }
-        .stat-val { float: right; font-weight: bold; color: #fff; }
-        #game-area { position: relative; border-radius: 10px; overflow: auto; border: 2px solid #333; background: #000; flex-grow: 1; }
-        canvas { display: block; margin: auto; }
-
-        .modal { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 480px; background: #151515; border: 3px solid var(--accent); padding: 20px; display: none; z-index: 1000; border-radius: 15px; box-shadow: 0 0 50px rgba(0,0,0,0.9); }
-        .btn-list { display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto; }
-        .btn-opt { background: #222; border: 1px solid #444; padding: 12px; color: #fff; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-radius: 5px; }
-        .btn-opt:hover { background: #333; border-color: var(--accent); }
-
-        .log { flex-grow: 1; background: #000; padding: 10px; font-size: 12px; border: 1px solid #333; overflow-y: auto; color: #aaa; border-radius: 8px; min-height: 100px; }
-        .passive-tag { background: #8e44ad; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-bottom: 4px; display: block; color: white; border-left: 3px solid #f1c40f; }
+        :root { --bg: #030303; --ui: #151515; --border: #3498db; --accent: #f1c40f; }
+        body { background: var(--bg); color: #eee; font-family: '微軟正黑體', sans-serif; display: flex; align-items: center; justify-content: center; margin: 0; height: 100vh; overflow: hidden; }
+        .game-layout { display: flex; gap: 20px; width: 98vw; height: 95vh; }
+        .sidebar { width: 320px; background: var(--ui); padding: 15px; border: 2px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        .stat-line { font-size: 14px; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        .stat-val { float: right; color: var(--accent); font-weight: bold; }
+        #game-viewport { flex-grow: 1; position: relative; border-radius: 10px; overflow: hidden; border: 2px solid #333; background: #000; }
+        canvas { display: block; }
+        .modal { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 420px; background: #1a1a1a; border: 3px solid var(--accent); padding: 20px; display: none; z-index: 1000; border-radius: 15px; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
+        .btn-opt { background: #252525; border: 1px solid #444; padding: 12px; color: #fff; cursor: pointer; display: flex; justify-content: space-between; border-radius: 8px; margin-bottom: 8px; }
+        .log { flex-grow: 1; background: #000; padding: 10px; font-size: 12px; overflow-y: auto; color: #999; border-radius: 8px; border: 1px solid #222; }
     </style>
 </head>
 <body>
 
 <div id="building-ui" class="modal">
-    <h2 id="modal-title" style="text-align:center; color:var(--accent); margin-top:0;"></h2>
-    <div id="modal-content" class="btn-list"></div>
-    <button onclick="closeModal()" style="width:100%; margin-top:15px; padding:10px; cursor:pointer; background:#444; color:white; border:none; border-radius:5px;">離開</button>
+    <h2 id="modal-title" style="text-align:center; color:var(--accent);">🏛️ 建築</h2>
+    <div id="modal-content"></div>
+    <button onclick="closeModal()" style="width:100%; margin-top:10px; padding:10px; cursor:pointer; background:#444; color:white; border:none; border-radius:5px;">離開</button>
 </div>
 
 <div class="game-layout">
     <div class="sidebar">
-        <h3 style="text-align:center; margin:0; color:#2ecc71">Lv.<span id="s-lv">1</span> 奧術師</h3>
-        <div style="height:6px; background:#333; border-radius:3px;"><div id="exp-bar" style="height:100%; background:#2ecc71; width:0%"></div></div>
-        
+        <h3 style="text-align:center; margin:0; color:#2ecc71">Lv.<span id="s-lv">1</span> 奧術大師</h3>
         <div class="stat-line">❤️ 生命 <span id="s-hp" class="stat-val">100/100</span></div>
         <div class="stat-line">🧪 魔力 <span id="s-mp" class="stat-val">30/30</span></div>
-        <div class="stat-line">⚔️ 近戰力量 <span id="s-atk" class="stat-val">10</span></div>
-        <div class="stat-line">🔮 魔法術力 <span id="s-mgk" class="stat-val">10</span></div>
-        <div class="stat-line">🛡️ 防禦力 <span id="s-def" class="stat-val">0</span></div>
-        <div class="stat-line">💰 金幣 <span id="s-gold" class="stat-val" style="color:var(--accent)">100</span></div>
+        <div class="stat-line">⚔️ 近戰 <span id="s-atk" class="stat-val">10</span></div>
+        <div class="stat-line">🔮 術力 <span id="s-mgk" class="stat-val">10</span></div>
+        <div class="stat-line">💰 金幣 <span id="s-gold" class="stat-val">100</span></div>
         <div class="stat-line">🏰 層數 <span id="s-floor" class="stat-val">1</span></div>
-
-        <div style="font-weight:bold; margin-top:5px; color:var(--border)">🧠 已覺醒被動:</div>
-        <div id="passive-ui"></div>
-
-        <div style="font-weight:bold; margin-top:5px; color:var(--border)">📜 法術 (Q/E/F/V/X):</div>
-        <div id="spell-ui"></div>
-        
         <div class="log" id="log"></div>
+        <div id="passive-ui" style="font-size:11px; color:#a29bfe;"></div>
+        <div id="spell-ui"></div>
     </div>
-
-    <div id="game-area">
-        <canvas id="gameCanvas" width="1000" height="750"></canvas>
+    <div id="game-viewport">
+        <canvas id="gameCanvas"></canvas>
     </div>
 </div>
 
 <script>
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-const TILE = 25, GW = 40, GH = 30; // 擴大地圖尺寸
 
+const TILE = 40; // 格子大小
+const GW = 80, GH = 60; // 地圖擴大 4 倍 (從 40x30 變 80x60)
 let floor = 1, gold = 100, lv = 1, exp = 0, nextExp = 100;
 let dungeon = [], enemies = [], effects = [];
 let passives = [], playerSpells = ['Q'];
 let currentBuilding = null;
 
-const PASSIVE_DATA = {
-    "吸血": { desc: "近戰造成傷害回3血", emoji: "🩸" },
-    "冥想": { desc: "每回合自動回復1魔力", emoji: "🧘" },
-    "荊棘": { desc: "受傷時反彈50%傷害", emoji: "🌵" },
-    "法力護盾": { desc: "30%機率減免受傷", emoji: "🛡️" }
-};
-
-const MONSTER_EMOJIS = ["👺", "👻", "🦇", "💀", "👾"];
-
-const SPELLS = {
-    'Q': { n: '火球術', mp: 2, cd: 2, sc: 1.5, d: '直線噴發', p: 0 },
-    'E': { n: '冰爆術', mp: 5, cd: 5, sc: 0.8, d: '周圍爆炸', p: 150 },
-    'F': { n: '萬劍訣', mp: 8, cd: 10, sc: 0.4, d: '全屏隨機', p: 250 },
-    'V': { n: '治癒術', mp: 4, cd: 12, sc: 0, d: '回復30HP', p: 120 },
-    'X': { n: '毀滅新星', mp: 15, cd: 20, sc: 2.5, d: '清理全圖', p: 400 }
-};
-
-let player = { x: 5, y: 5, maxHp: 100, hp: 100, maxMp: 30, mp: 30, atk: 10, mgk: 10, def: 0, cd: {} };
+let player = { x: 40, y: 30, maxHp: 100, hp: 100, maxMp: 30, mp: 30, atk: 10, mgk: 10, def: 0, cd: {} };
 
 function initLevel() {
     dungeon = Array(GH).fill().map(() => Array(GW).fill(1));
     enemies = []; effects = [];
-    let cx = Math.floor(GW/2), cy = Math.floor(GH/2); 
-    player.x = cx; player.y = cy;
     
-    // 生成更大地圖
-    for(let i=0; i<1200; i++) {
+    // 生成大地圖
+    let cx = Math.floor(GW/2), cy = Math.floor(GH/2);
+    player.x = cx; player.y = cy;
+    for(let i=0; i<3500; i++) {
         dungeon[cy][cx] = 0;
         let d = Math.floor(Math.random()*4);
-        if(d===0 && cy>1) cy--; else if(d===1 && cy<GH-2) cy++;
-        else if(d===2 && cx>1) cx--; else if(d===3 && cx<GW-2) cx++;
+        if(d===0 && cy>2) cy--; else if(d===1 && cy<GH-3) cy++;
+        else if(d===2 && cx>2) cx--; else if(d===3 && cx<GW-3) cx++;
     }
 
-    const types = ["鐵匠鋪", "魔法商店", "道具店", "祭壇", "訓練場"];
-    currentBuilding = { type: types[Math.floor(Math.random()*types.length)] };
+    // 怪物數量邏輯
+    let modFloor = floor % 10;
+    if(modFloor === 0) {
+        spawnEnemy(true); // 首領層
+    } else {
+        let count = 3 + modFloor + 1; // 1樓=5隻, 2樓=6隻... 9樓=13隻
+        for(let i=0; i<count; i++) spawnEnemy(false);
+    }
+
+    const bTypes = ["鐵匠鋪", "魔法商店", "道具店", "祭壇", "訓練場"];
+    currentBuilding = { type: bTypes[Math.floor(Math.random()*bTypes.length)] };
     currentBuilding.items = generateShop(currentBuilding.type);
     
     placeSpec(2); placeSpec(3); 
-    
-    // 增加怪物密度
-    let monsterCount = 8 + (floor * 2);
-    for(let i=0; i<monsterCount; i++) spawnEnemy(false);
-    if(Math.random() < 0.3) spawnEnemy(true);
-
+    resizeCanvas();
     updateUI();
 }
 
 function placeSpec(v) {
     let x, y;
     do { x = Math.floor(Math.random()*GW); y = Math.floor(Math.random()*GH); } 
-    while (dungeon[y][x] !== 0 || Math.abs(x-player.x)+Math.abs(y-player.y) < 6);
+    while (dungeon[y][x] !== 0 || Math.abs(x-player.x)+Math.abs(y-player.y) < 10);
     dungeon[y][x] = v;
-    for(let i=-1; i<=1; i++) for(let j=-1; j<=1; j++) {
-        let ny = y+i, nx = x+j;
-        if(ny>0 && ny<GH-1 && nx>0 && nx<GW-1) if(dungeon[ny][nx]===1) dungeon[ny][nx]=0;
-    }
 }
 
-function spawnEnemy(isElite) {
+function spawnEnemy(isBoss) {
     let x, y;
     do { x = Math.floor(Math.random()*GW); y = Math.floor(Math.random()*GH); } while(dungeon[y][x] !== 0);
-    let power = Math.floor(floor/5) * 40;
+    let power = Math.floor(floor/5) * 50;
     enemies.push({
-        x, y, isElite,
-        hp: (50 + power) * (isElite?5:1), 
-        maxHp: (50 + power) * (isElite?5:1),
-        atk: (7 + Math.floor(power/10)) * (isElite?2:1),
-        emoji: isElite ? "👑" : MONSTER_EMOJIS[Math.floor(Math.random()*MONSTER_EMOJIS.length)],
-        isWounded: false
+        x, y, isBoss,
+        hp: (60 + power) * (isBoss ? 20 : 1), maxHp: (60 + power) * (isBoss ? 20 : 1),
+        atk: (8 + Math.floor(power/10)) * (isBoss ? 2.5 : 1),
+        emoji: isBoss ? "👑" : ["👺", "💀", "👻", "🦇"][Math.floor(Math.random()*4)],
+        wounded: false
     });
 }
 
 function generateShop(type) {
     let list = [];
     if(type === "鐵匠鋪") {
-        list.push({ n: "⚔️ 強化鋒芒 (近戰+4)", p: 50, inf: true, f: () => player.atk += 4 });
-        list.push({ n: "🛡️ 鍛造護甲 (防禦+2)", p: 60, inf: true, f: () => player.def += 2 });
-        list.push({ n: "🔮 磨製法珠 (術力+4)", p: 50, inf: true, f: () => player.mgk += 4 });
+        list.push({ n: "⚔️ 強化 (近戰+4)", p: 50, inf: true, f: () => player.atk+=4 });
+        list.push({ n: "🛡️ 加固 (防禦+2)", p: 60, inf: true, f: () => player.def+=2 });
+        list.push({ n: "🔮 附魔 (術力+5)", p: 50, inf: true, f: () => player.mgk+=5 });
     } else if(type === "魔法商店") {
-        Object.keys(SPELLS).forEach(k => {
-            if(!playerSpells.includes(k)) list.push({ n: `📜 ${SPELLS[k].n}`, p: SPELLS[k].p, id: k, inf: false, f: () => playerSpells.push(k) });
+        const spells = { 'E':150, 'F':250, 'V':120, 'X':450 };
+        Object.keys(spells).forEach(k => {
+            if(!playerSpells.includes(k)) list.push({ n: `📜 卷軸 ${k}`, p: spells[k], id: k, f: () => playerSpells.push(k) });
         });
     } else if(type === "道具店") {
-        list.push({ n: "🧪 治癒藥水 (HP全滿)", p: 50, inf: true, f: () => player.hp = player.maxHp });
-        list.push({ n: "⚡ 魔力藥劑 (MP+20)", p: 30, inf: true, f: () => player.mp = Math.min(player.maxMp, player.mp+20) });
+        list.push({ n: "🧪 大紅水", p: 50, inf: true, f: () => player.hp=player.maxHp });
+        list.push({ n: "⚡ 能量劑", p: 40, inf: true, f: () => player.mp=Math.min(player.maxMp, player.mp+25) });
     } else if(type === "訓練場") {
-        Object.keys(PASSIVE_DATA).filter(p => !passives.includes(p)).forEach(p => {
-            list.push({ n: `${PASSIVE_DATA[p].emoji} ${p}`, p: 200, d: PASSIVE_DATA[p].desc, id: p, inf: false, f: () => passives.push(p) });
+        ["吸血", "冥想", "荊棘", "法力護盾"].filter(p=>!passives.includes(p)).forEach(p => {
+            list.push({ n: `🧠 覺醒 ${p}`, p: 200, id: p, f: () => passives.push(p) });
         });
     }
     return list;
 }
 
-function openModal() {
-    if(currentBuilding.type === "祭壇") {
-        if(confirm("獻祭50%狀態：獲得大量金幣或挑戰召喚獸獲取被動？")) {
-            player.hp = Math.max(1, Math.floor(player.hp*0.5)); player.mp = Math.floor(player.mp*0.5);
-            if(Math.random() < 0.5) { gold += 400; addLog("✨ 獲得 400 金幣"); }
-            else { addLog("💀 召喚了強大守衛！", "red"); spawnEnemy(true); spawnEnemy(true); }
-            updateUI();
-        }
-        return;
-    }
-    const m = document.getElementById('building-ui');
-    const c = document.getElementById('modal-content');
-    document.getElementById('modal-title').innerText = "🏛️ " + currentBuilding.type;
-    m.style.display = 'block';
-    c.innerHTML = "";
-    currentBuilding.items.forEach((it, idx) => {
-        let div = document.createElement('div'); div.className = "btn-opt";
-        div.innerHTML = `<div><b>${it.n}</b><br><small>${it.d||''}</small></div><span style="color:var(--accent)">💰${it.p}</span>`;
-        div.onclick = () => {
-            if(gold >= it.p) {
-                gold -= it.p; it.f();
-                if(!it.inf) currentBuilding.items.splice(idx, 1);
-                updateUI(); openModal();
-            }
-        };
-        c.appendChild(div);
-    });
+function resizeCanvas() {
+    canvas.width = document.getElementById('game-viewport').clientWidth;
+    canvas.height = document.getElementById('game-viewport').clientHeight;
 }
 
 function draw() {
+    if(!canvas.width) return;
     ctx.fillStyle = "#000"; ctx.fillRect(0,0,canvas.width,canvas.height);
-    for(let y=0; y<GH; y++) for(let x=0; x<GW; x++) {
-        if(dungeon[y][x] === 1) { ctx.fillStyle="#1a1a1a"; ctx.fillRect(x*TILE+1, y*TILE+1, TILE-2, TILE-2); }
-        else { ctx.strokeStyle="#0a0a0a"; ctx.strokeRect(x*TILE, y*TILE, TILE, TILE); }
-        
-        ctx.font = `${TILE-5}px Arial`;
-        if(dungeon[y][x] === 2) ctx.fillText("🪜", x*TILE+2, y*TILE+TILE-4);
-        if(dungeon[y][x] === 3) {
-            const icon = {"鐵匠鋪":"⚒️","魔法商店":"🔮","道具店":"🍱","祭壇":"⛩️","訓練場":"🏋️"};
-            ctx.fillText(icon[currentBuilding.type], x*TILE+2, y*TILE+TILE-4);
+
+    // 攝影機鎖定
+    let camX = player.x * TILE - canvas.width / 2 + TILE/2;
+    let camY = player.y * TILE - canvas.height / 2 + TILE/2;
+
+    for(let y=0; y<GH; y++) {
+        for(let x=0; x<GW; x++) {
+            let dx = x * TILE - camX, dy = y * TILE - camY;
+            if(dx < -TILE || dx > canvas.width || dy < -TILE || dy > canvas.height) continue;
+
+            if(dungeon[y][x] === 1) {
+                ctx.fillStyle = (x+y)%2===0 ? "#050505" : "#080808"; // 無網格設計
+            } else {
+                ctx.fillStyle = "#010101";
+            }
+            ctx.fillRect(dx, dy, TILE, TILE);
+
+            ctx.font = `${TILE * 0.7}px Arial`;
+            if(dungeon[y][x] === 2) ctx.fillText("🪜", dx + TILE*0.15, dy + TILE*0.75);
+            if(dungeon[y][x] === 3) {
+                const icons = {"鐵匠鋪":"⚒️","魔法商店":"🔮","道具店":"🍱","祭壇":"⛩️","訓練場":"🏋️"};
+                ctx.fillText(icons[currentBuilding.type], dx + TILE*0.15, dy + TILE*0.75);
+            }
         }
     }
 
+    // 繪製單位 (精確控制比例 0.9 倍，不溢出)
+    const drawUnit = (emoji, x, y, isBoss) => {
+        let dx = x * TILE - camX, dy = y * TILE - camY;
+        ctx.font = `${TILE * 0.9}px Arial`;
+        if(isBoss) { ctx.shadowBlur = 10; ctx.shadowColor = "red"; }
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(emoji, dx + TILE/2, dy + TILE/2);
+        ctx.shadowBlur = 0; ctx.textAlign = "start"; ctx.textBaseline = "alphabetic";
+    };
+
     enemies.forEach(en => {
-        ctx.font = `${TILE}px Arial`;
-        if(en.isElite) { ctx.shadowBlur = 10; ctx.shadowColor = "gold"; }
-        ctx.fillText(en.emoji, en.x*TILE, en.y*TILE+TILE-2);
-        ctx.shadowBlur = 0;
-        
-        // 血條顯示：受傷後固定出現
-        if(en.isWounded || en.hp < en.maxHp) {
-            en.isWounded = true; 
-            ctx.fillStyle="#333"; ctx.fillRect(en.x*TILE, en.y*TILE-6, TILE, 4);
-            ctx.fillStyle="#e74c3c"; ctx.fillRect(en.x*TILE, en.y*TILE-6, TILE*(en.hp/en.maxHp), 4);
+        drawUnit(en.emoji, en.x, en.y, en.isBoss);
+        if(en.wounded) {
+            let dx = en.x * TILE - camX, dy = en.y * TILE - camY;
+            ctx.fillStyle = "#333"; ctx.fillRect(dx + TILE*0.1, dy, TILE*0.8, 4);
+            ctx.fillStyle = "#e74c3c"; ctx.fillRect(dx + TILE*0.1, dy, TILE*0.8*(en.hp/en.maxHp), 4);
         }
     });
 
-    ctx.font = `${TILE}px Arial`;
-    ctx.fillText("🧙‍♂️", player.x*TILE, player.y*TILE+TILE-2);
+    drawUnit("🧙‍♂️", player.x, player.y, false);
 
     effects.forEach((eff, i) => {
-        ctx.globalAlpha = eff.l/10; ctx.fillStyle="#f1c40f"; ctx.fillRect(eff.x*TILE, eff.y*TILE, TILE, TILE);
+        ctx.globalAlpha = eff.l/10; ctx.fillStyle = "#f1c40f";
+        ctx.fillRect(eff.x * TILE - camX, eff.y * TILE - camY, TILE, TILE);
         eff.l--; if(eff.l<=0) effects.splice(i,1);
     });
     ctx.globalAlpha = 1;
 }
 
 function dealDamage(t, base, key) {
-    let sc = key ? SPELLS[key].sc : 1;
+    let sc = key ? {Q:1.5, E:0.8, F:0.4, X:2.5}[key] : 1;
     let dmg = Math.floor((key ? player.mgk : player.atk) * sc);
-    t.hp -= dmg; t.isWounded = true;
-    addLog(`⚔️ 施展 [${key?SPELLS[key].n:'打擊'}] 造成 ${dmg} 傷害`);
-    if(passives.includes("吸血") && !key) player.hp = Math.min(player.maxHp, player.hp + 3);
+    t.hp -= dmg; t.wounded = true;
+    addLog(`⚔️ 造成 ${dmg} 傷害`);
     if(t.hp <= 0) {
-        gold += (t.isElite?250:35); gainExp(t.isElite?400:60);
-        if(t.isElite) {
-            const pArr = Object.keys(PASSIVE_DATA).filter(p=>!passives.includes(p));
-            if(pArr.length) { let p = pArr[0]; passives.push(p); addLog(`🏆 獲得被動：${p}`); }
-        }
+        gold += (t.isBoss ? 1000 : 40); gainExp(t.isBoss ? 1000 : 70);
         enemies = enemies.filter(e => e !== t);
     }
 }
 
 function endTurn() {
     Object.keys(player.cd).forEach(k => { if(player.cd[k]>0) player.cd[k]--; });
-    if(passives.includes("冥想")) player.mp = Math.min(player.maxMp, player.mp + 1);
     enemies.forEach(en => {
         let dist = Math.abs(player.x-en.x) + Math.abs(player.y-en.y);
         if(dist === 1) {
             let d = Math.max(1, en.atk - player.def);
-            if(passives.includes("法力護盾") && Math.random() < 0.35) d = Math.floor(d*0.6);
-            player.hp -= d; addLog(`👺 ${en.emoji} 攻擊造成 ${d} 傷害`, "red");
-            if(passives.includes("荊棘")) en.hp -= Math.floor(d*0.5);
-        } else if(dist < 12) {
+            player.hp -= d; addLog(`💥 受到 ${d} 傷害`, "red");
+        } else if(dist < 15) {
             let dx = Math.sign(player.x-en.x), dy = Math.sign(player.y-en.y);
             if(dungeon[en.y+dy][en.x+dx]===0 && !enemies.some(e=>e.x===en.x+dx && e.y===en.y+dy)) {
                 en.x += dx; en.y += dy;
             }
         }
     });
-    if(player.hp <= 0) { alert("戰敗於第 " + floor + " 層"); location.reload(); }
+    if(player.hp <= 0) { alert("戰敗！"); location.reload(); }
     updateUI();
 }
 
@@ -269,27 +228,15 @@ function updateUI() {
     document.getElementById('s-mp').innerText = `${Math.floor(player.mp)}/${player.maxMp}`;
     document.getElementById('s-atk').innerText = player.atk;
     document.getElementById('s-mgk').innerText = player.mgk;
-    document.getElementById('s-def').innerText = player.def;
     document.getElementById('s-gold').innerText = gold;
     document.getElementById('s-floor').innerText = floor;
     document.getElementById('s-lv').innerText = lv;
-    document.getElementById('exp-bar').style.width = (exp/nextExp)*100 + "%";
-    
-    let pUI = document.getElementById('passive-ui'); pUI.innerHTML = "";
-    passives.forEach(p => pUI.innerHTML += `<div class="passive-tag">${PASSIVE_DATA[p].emoji} ${p}: ${PASSIVE_DATA[p].desc}</div>`);
-    
-    let sUI = document.getElementById('spell-ui'); sUI.innerHTML = "";
-    playerSpells.forEach(k => {
-        let s = SPELLS[k];
-        sUI.innerHTML += `<div style="background:#252525; padding:5px; border-radius:4px; margin-top:4px; font-size:12px; border:1px solid #444;">
-            <b>[${k}] ${s.n}</b> (MP:${s.mp}) <span style="float:right">${player.cd[k]?'⏳'+player.cd[k]:'✅'}</span></div>`;
-    });
 }
 
 function gainExp(a) {
     exp += a; if(exp >= nextExp) { 
-        lv++; exp -= nextExp; nextExp = Math.floor(nextExp * 1.5); 
-        player.maxHp += 30; player.maxMp += 15; player.hp = player.maxHp; 
+        lv++; exp -= nextExp; nextExp = Math.floor(nextExp * 1.6); 
+        player.maxHp += 30; player.hp = player.maxHp; 
     }
 }
 
@@ -298,49 +245,47 @@ function addLog(m, c) {
     d.innerText = "> " + m; let l = document.getElementById('log'); l.prepend(d);
 }
 
-function closeModal() { document.getElementById('building-ui').style.display = 'none'; }
-
-function tryMove(dx, dy) {
-    let nx = player.x + dx, ny = player.y + dy;
-    if (nx < 0 || nx >= GW || ny < 0 || ny >= GH || dungeon[ny][nx] === 1) return;
-    let target = enemies.find(e => e.x === nx && e.y === ny);
-    if (target) { dealDamage(target, player.atk, null); endTurn(); }
-    else {
-        player.x = nx; player.y = ny;
-        if(dungeon[ny][nx] === 2) { floor++; initLevel(); }
-        else if(dungeon[ny][nx] === 3) openModal();
-        else endTurn();
-    }
+function openModal() {
+    const m = document.getElementById('building-ui');
+    const c = document.getElementById('modal-content');
+    document.getElementById('modal-title').innerText = "🏛️ " + currentBuilding.type;
+    m.style.display = 'block';
+    c.innerHTML = "";
+    currentBuilding.items.forEach((it, idx) => {
+        let div = document.createElement('div'); div.className = "btn-opt";
+        div.innerHTML = `<span>${it.n}</span><span style="color:var(--accent)">💰${it.p}</span>`;
+        div.onclick = () => {
+            if(gold >= it.p) { gold -= it.p; it.f(); if(!it.inf) currentBuilding.items.splice(idx,1); updateUI(); openModal(); }
+        };
+        c.appendChild(div);
+    });
 }
+
+function closeModal() { document.getElementById('building-ui').style.display = 'none'; }
 
 window.addEventListener('keydown', e => {
     if(document.getElementById('building-ui').style.display === 'block') return;
     let k = e.key.toUpperCase();
-    if(['W','A','S','D'].includes(k)) {
-        if(k==='W') tryMove(0,-1); if(k==='S') tryMove(0,1);
-        if(k==='A') tryMove(-1,0); if(k==='D') tryMove(1,0);
-    } else if(SPELLS[k] && playerSpells.includes(k)) {
-        if(player.mp >= SPELLS[k].mp && !player.cd[k]) {
-            player.mp -= SPELLS[k].mp; player.cd[k] = SPELLS[k].cd;
-            if(k==='Q') {
-                [[0,-1],[0,1],[-1,0],[1,0]].forEach(d => {
-                    for(let i=1; i<8; i++) {
-                        let tx = player.x+d[0]*i, ty = player.y+d[1]*i;
-                        if(tx<0||tx>=GW||ty<0||ty>=GH||dungeon[ty][tx]===1) break;
-                        effects.push({x:tx, y:ty, l:5});
-                        let t = enemies.find(e=>e.x===tx && e.y===ty);
-                        if(t) { dealDamage(t, 0, 'Q'); break; }
-                    }
-                });
-            } else if(k==='V') { player.hp = Math.min(player.maxHp, player.hp+35); }
-            else { enemies.forEach(en => { effects.push({x:en.x, y:en.y, l:8}); dealDamage(en, 0, k); }); }
+    let dx = 0, dy = 0;
+    if(k==='W') dy = -1; if(k==='S') dy = 1; if(k==='A') dx = -1; if(k==='D') dx = 1;
+    if(dx!==0 || dy!==0) {
+        let nx = player.x + dx, ny = player.y + dy;
+        if(nx>=0 && nx<GW && ny>=0 && ny<GH && dungeon[ny][nx]!==1) {
+            let target = enemies.find(e=>e.x===nx && e.y===ny);
+            if(target) dealDamage(target, player.atk, null);
+            else {
+                player.x = nx; player.y = ny;
+                if(dungeon[ny][nx]===2) { floor++; initLevel(); return; }
+                if(dungeon[ny][nx]===3) openModal();
+            }
             endTurn();
         }
     }
 });
 
+window.addEventListener('resize', resizeCanvas);
 initLevel();
-setInterval(draw, 50);
+setInterval(draw, 30);
 </script>
 </body>
 </html>
