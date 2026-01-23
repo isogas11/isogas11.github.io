@@ -216,44 +216,79 @@ function openBuilding() {
 }
 
 function draw() {
-    ctx.fillStyle = "#000"; ctx.fillRect(0,0,750,600);
-    
-    // 更新迷霧視野
-    for(let y=0; y<GH; y++) for(let x=0; x<GW; x++) {
-        let dist = Math.sqrt((x-player.x)**2 + (y-player.y)**2);
-        if(dist < 5) explored[y][x] = true;
-        
-        if(!explored[y][x]) continue;
+    // 1. 完全清空畫布
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        if(dungeon[y][x] === 1) {
-            ctx.fillStyle = "#1a1a1a"; ctx.fillRect(x*TILE, y*TILE, TILE, TILE);
+    for (let y = 0; y < GH; y++) {
+        for (let x = 0; x < GW; x++) {
+            // 計算玩家與格子的距離
+            let dist = Math.sqrt((x - player.x) ** 2 + (y - player.y) ** 2);
+            
+            // 視野判斷：半徑 5 以內視為「已探索」
+            if (dist < 5) explored[y][x] = true;
+
+            // 如果沒探索過，完全不畫（真正的迷霧）
+            if (!explored[y][x]) continue;
+
+            // 2. 繪製地圖基礎層
+            if (dungeon[y][x] === 1) {
+                ctx.fillStyle = "#222"; // 牆壁：深灰色
+            } else {
+                ctx.fillStyle = "#080808"; // 走道：極暗灰色
+            }
+            ctx.fillRect(x * TILE, y * TILE, TILE - 1, TILE - 1);
+
+            // 3. 繪製特殊建築與階梯
+            ctx.font = "20px Arial";
+            if (dungeon[y][x] === 2) ctx.fillText("🪜", x * TILE + 4, y * TILE + 22);
+            if (dungeon[y][x] === 3) {
+                const icons = {"鐵匠鋪":"⚒️","魔法商店":"🔮","道具店":"🍱","祭壇":"⛩️","訓練場":"🏋️"};
+                ctx.fillText(icons[currentBuilding.type] || "🏠", x * TILE + 4, y * TILE + 22);
+            }
+
+            // 4. 處理「視野外」的陰影
+            if (dist >= 5) {
+                ctx.fillStyle = "rgba(0, 0, 0, 0.7)"; // 在視野外覆蓋一層黑色半透明
+                ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
+            }
         }
-        ctx.font = "18px Arial";
-        if(dungeon[y][x] === 2) ctx.fillText("🪜", x*TILE+4, y*TILE+22);
-        if(dungeon[y][x] === 3) {
-            let icons = {"鐵匠鋪":"⚒️","魔法商店":"🔮","道具店":"🍱","祭壇":"⛩️","訓練場":"🏋️"};
-            ctx.fillText(icons[currentBuilding.type]||"🏠", x*TILE+4, y*TILE+22);
-        }
-        
-        // 畫迷霧（半徑外變暗）
-        if(dist >= 5) { ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(x*TILE, y*TILE, TILE, TILE); }
     }
 
+    // 5. 繪製怪物（只在已探索區域顯示）
     enemies.forEach(en => {
-        if(!explored[en.y][en.x]) return;
-        ctx.fillStyle = en.isElite ? "#e67e22" : "#c0392b";
-        ctx.beginPath();
-        ctx.arc(en.x*TILE+TILE/2, en.y*TILE+TILE/2, en.isElite?12:10, 0, Math.PI*2);
-        ctx.fill();
-        if(en.isElite) { ctx.strokeStyle="#fff"; ctx.stroke(); }
+        if (!explored[en.y][en.x]) return;
         
-        if(en.lastHit > 0) {
-            ctx.fillStyle="#333"; ctx.fillRect(en.x*TILE, en.y*TILE-5, TILE, 4);
-            ctx.fillStyle="#2ecc71"; ctx.fillRect(en.x*TILE, en.y*TILE-5, TILE*(en.hp/en.maxHp), 4);
-            en.lastHit--;
-        }
+        // 判斷是否在玩家視野內 (dist < 5)
+        let dist = Math.sqrt((en.x - player.x) ** 2 + (en.y - player.y) ** 2);
+        if (dist >= 5) return; // 怪物躲在迷霧中不可見
+
+        ctx.fillStyle = en.isElite ? "#f39c12" : "#e74c3c";
+        ctx.beginPath();
+        // 增大圖案尺寸提升遊戲感
+        ctx.arc(en.x * TILE + TILE / 2, en.y * TILE + TILE / 2, en.isElite ? 13 : 11, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // 血條顯示
+        ctx.fillStyle = "#333";
+        ctx.fillRect(en.x * TILE, en.y * TILE - 5, TILE, 4);
+        ctx.fillStyle = "#2ecc71";
+        ctx.fillRect(en.x * TILE, en.y * TILE - 5, TILE * (en.hp / en.maxHp), 4);
     });
 
+    // 6. 繪製玩家（最上層，絕對可見）
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = "#3498db";
+    ctx.fillStyle = "#3498db";
+    // 畫一個酷炫的三角形
+    ctx.beginPath();
+    ctx.moveTo(player.x * TILE + TILE / 2, player.y * TILE + 5);
+    ctx.lineTo(player.x * TILE + 5, player.y * TILE + TILE - 5);
+    ctx.lineTo(player.x * TILE + TILE - 5, player.y * TILE + TILE - 5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.shadowBlur = 0; // 重設發光
+}
     // 畫玩家
     ctx.fillStyle = "#3498db";
     ctx.beginPath();
