@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>深淵獵手：奧術商店版</title>
+    <title>深淵獵手：雙重商店版</title>
     <style>
         body { background: #050505; color: #eee; font-family: 'Consolas', monospace; display: flex; flex-direction: column; align-items: center; margin: 0; overflow: hidden; }
         .game-layout { display: flex; gap: 15px; padding: 15px; width: 1450px; height: 98vh; box-sizing: border-box; }
@@ -11,30 +11,30 @@
         .stat-val { float: right; font-weight: bold; }
         #game-area { position: relative; }
         canvas { background: #000; border: 4px solid #3498db; }
-        .right-panel { width: 400px; display: flex; flex-direction: column; gap: 10px; }
         
-        /* 技能卡片樣式優化 */
+        .right-panel { width: 400px; display: flex; flex-direction: column; gap: 10px; }
         .spell-card { background: #1e272e; padding: 8px; border: 1px solid #3d3d3d; border-radius: 5px; margin-bottom: 5px; opacity: 0.4; position: relative; }
         .spell-card.unlocked { opacity: 1; border-color: #3498db; }
-        .spell-card.on-cd { border-color: #555; filter: grayscale(0.8); }
-        .cd-overlay { position: absolute; top:0; left:0; height:100%; background: rgba(0,0,0,0.5); width: 0%; transition: width 0.2s; pointer-events: none; }
+        .cd-overlay { position: absolute; top:0; left:0; height:100%; background: rgba(0,0,0,0.5); width: 0%; pointer-events: none; }
         
-        .spell-key { background: #444; color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold; margin-right: 5px; }
-        .unlocked .spell-key { background: #3498db; }
+        .log { height: 180px; background: #000; padding: 10px; font-size: 13px; border: 1px solid #333; overflow-y: auto; color: #aaa; border-radius: 8px; }
         
-        .log { height: 200px; background: #000; padding: 10px; font-size: 13px; border: 1px solid #333; overflow-y: auto; color: #aaa; border-radius: 8px; }
-        #shop-ui { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 400px; background: #1a1a1a; border: 3px solid #f1c40f; padding: 20px; display: none; z-index: 100; border-radius: 10px; }
-        .shop-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #333; cursor: pointer; }
+        /* 商店 UI */
+        #shop-ui { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 450px; background: #1a1a1a; border: 3px solid #f1c40f; padding: 20px; display: none; z-index: 100; border-radius: 10px; }
+        .shop-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #333; cursor: pointer; }
         .shop-item:hover { background: #222; }
+        .item-desc { font-size: 12px; color: #888; display: block; }
         .price { color: #f1c40f; font-weight: bold; }
+        
+        .passive-tag { display: inline-block; background: #27ae60; color: white; padding: 2px 5px; border-radius: 3px; font-size: 11px; margin: 2px; }
     </style>
 </head>
 <body>
 
 <div id="shop-ui">
-    <h2 style="color:#f1c40f; text-align:center; margin-top:0;">🛒 魔法神秘商店</h2>
+    <h2 id="shop-title" style="text-align:center; margin-top:0;">🛒 商店</h2>
     <div id="shop-list"></div>
-    <button onclick="closeShop()" style="width:100%; margin-top:15px; padding:10px; background:#444; color:white; border:none; cursor:pointer;">離開商店</button>
+    <button onclick="closeShop()" style="width:100%; margin-top:15px; padding:10px; background:#444; color:white; border:none; cursor:pointer;">離開</button>
 </div>
 
 <div class="game-layout">
@@ -42,11 +42,16 @@
         <h3 style="color:#3498db; text-align:center;">🧙 奧術主宰</h3>
         <div class="stat-line">❤️ 生命 <span id="s-hp" class="stat-val" style="color:#e74c3c">100/100</span></div>
         <div class="stat-line">🧪 能量 <span id="s-mp" class="stat-val" style="color:#3498db">20/20</span></div>
-        <div class="stat-line">⚔️ 術力 <span id="s-atk" class="stat-val" style="color:#9b59b6">15</span></div>
+        <div class="stat-line">⚔️ 近戰 <span id="s-matk" class="stat-val" style="color:#e67e22">10</span></div>
+        <div class="stat-line">🔮 術力 <span id="s-atk" class="stat-val" style="color:#9b59b6">15</span></div>
+        <div class="stat-line">🛡️ 防禦 <span id="s-def" class="stat-val" style="color:#95a5a6">0</span></div>
         <div class="stat-line">💰 金幣 <span id="s-gold" class="stat-val" style="color:#f1c40f">0</span></div>
         <div class="stat-line">🏰 層數 <span id="s-floor" class="stat-val">1</span></div>
         <hr border="0" style="border-top:1px solid #333">
-        <h4>已習得魔法:</h4>
+        <h4>被動能力:</h4>
+        <div id="passive-list"></div>
+        <hr border="0" style="border-top:1px solid #333">
+        <h4>魔法快捷鍵:</h4>
         <div id="spell-list-ui"></div>
     </div>
 
@@ -55,11 +60,11 @@
     <div class="right-panel">
         <div class="log" id="log"><div id="log-inner"></div></div>
         <div style="background:#151515; border:2px solid #333; padding:15px; border-radius:8px; flex-grow:1;">
-            <h4 style="margin-top:0; color:#f1c40f;">📜 冒險筆記</h4>
-            <div id="hint-text" style="font-size:13px; color:#999; line-height:1.6;">
-                * 技能現在有冷卻時間(CD)。<br>
-                * 怪物與玩家不能重疊。<br>
-                * 在地圖上尋找 🛒 符號進入商店。
+            <h4 style="margin-top:0; color:#f1c40f;">📜 圖例說明</h4>
+            <div style="font-size:13px; color:#999; line-height:2;">
+                🏪 一般商店 (屬性與被動)<br>
+                🔮 魔法商店 (技能解鎖)<br>
+                🪜 下一層入口
             </div>
         </div>
     </div>
@@ -70,29 +75,35 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const TILE = 30, GW = 25, GH = 20;
 
-let floor = 1, gold = 50, mpRegenCounter = 0;
+let floor = 1, gold = 100;
 let player = { 
-    x: 5, y: 5, hp: 100, maxHp: 100, mp: 20, maxMp: 20, atk: 15, 
-    regen: 1,
+    x: 5, y: 5, hp: 100, maxHp: 100, mp: 30, maxMp: 30, 
+    atk: 15, meleeAtk: 10, defense: 0, regen: 1,
     unlockedSpells: ['Q'],
-    spellCD: { 'Q':0, 'E':0, 'R':0, 'F':0, 'V':0, 'G':0 } // 記錄當前CD
+    spellCD: { 'Q':0, 'E':0, 'R':0, 'F':0, 'V':0, 'G':0 },
+    passives: [] // 存放擁有的被動 ID
 };
+
 let dungeon = [], enemies = [], effects = [], moveHistory = [];
 
 const SPELLS = {
-    'Q': { name: '火球術', cost: 3, cd: 0, desc: '直線傷害 (無CD)', price: 0 },
-    'E': { name: '冰爆陣', cost: 5, cd: 3, desc: '5x5範圍冰凍 (CD:3)', price: 150 },
-    'R': { name: '返回術', cost: 2, cd: 5, desc: '回到5步前 (CD:5)', price: 100 },
-    'F': { name: '萬劍訣', cost: 8, cd: 8, desc: '全屏打擊 (CD:8)', price: 300 },
-    'V': { name: '治癒術', cost: 6, cd: 6, desc: '恢復30%生命 (CD:6)', price: 200 },
-    'G': { name: '重力場', cost: 10, cd: 12, desc: '全屏控制 (CD:12)', price: 400 }
+    'Q': { name: '火球術', cost: 3, cd: 0, desc: '射程5的火球', price: 0 },
+    'E': { name: '冰爆陣', cost: 6, cd: 4, desc: '5x5凍結3回合', price: 200 },
+    'R': { name: '返回術', cost: 2, cd: 6, desc: '回到5步前', price: 150 },
+    'F': { name: '萬劍訣', cost: 10, cd: 10, desc: '全屏追蹤打擊', price: 400 },
+    'V': { name: '治癒術', cost: 5, cd: 8, desc: '恢復30%生命', price: 250 },
+    'G': { name: '重力場', cost: 12, cd: 15, desc: '全屏高傷+強控', price: 500 }
 };
 
-const SHOP_ITEMS = [
-    { id: 'mp_max', name: '🧪 擴張能量上限 (+10)', price: 100, effect: () => { player.maxMp += 10; player.mp += 10; } },
-    { id: 'hp_max', name: '❤️ 提升生命上限 (+10)', price: 100, effect: () => { player.maxHp += 10; player.hp += 10; } },
-    { id: 'mp_reg', name: '🌀 強化能量回復', price: 1000, effect: () => { player.regen += 1; } }
-];
+// --- 被動能力定義 ---
+const PASSIVES = {
+    'lifesteal': { name: '嗜血術', desc: '近戰攻擊時恢復 5% 生命', price: 300 },
+    'thorns': { name: '荊棘裝甲', desc: '受到攻擊時反彈 20% 傷害', price: 250 },
+    'crit': { name: '奧術暴擊', desc: '魔法傷害有 20% 機率翻倍', price: 350 },
+    'wisdom': { name: '賢者之石', desc: '每回合額外恢復 1 點能量', price: 400 },
+    'speed': { name: '神速', desc: '每移動 5 步縮短所有技能 1 CD', price: 300 },
+    'shield': { name: '能量護盾', desc: '受傷時優先扣除能量(1:2)', price: 450 }
+};
 
 function initLevel() {
     dungeon = Array(GH).fill().map(() => Array(GW).fill(1));
@@ -106,8 +117,10 @@ function initLevel() {
         else if(d===2 && cx>1) cx--; else if(d===3 && cx<GW-2) cx++;
     }
     
-    place(2, 1); // 出口
-    place(3, 1); // 商店
+    place(2, 1); // 🪜 出口
+    place(3, 1); // 🏪 一般商店
+    place(4, 1); // 🔮 魔法商店
+    
     for(let i=0; i<3 + Math.floor(floor/2); i++) spawnEnemy();
     updateUI();
 }
@@ -116,7 +129,7 @@ function spawnEnemy() {
     let x, y;
     do { x = Math.floor(Math.random()*GW); y = Math.floor(Math.random()*GH); }
     while(dungeon[y][x] !== 0 || (x===player.x && y===player.y));
-    enemies.push({ x, y, hp: 40+floor*10, maxHp: 40+floor*10, atk: 5+floor, isFrozen: 0 });
+    enemies.push({ x, y, hp: 40+floor*15, maxHp: 40+floor*15, atk: 8+floor*2, isFrozen: 0 });
 }
 
 function place(val, n) {
@@ -132,40 +145,60 @@ function tryMove(dx, dy) {
     let nx = player.x + dx, ny = player.y + dy;
     if (nx < 0 || nx >= GW || ny < 0 || ny >= GH || dungeon[ny][nx] === 1) return;
 
-    if (dungeon[ny][nx] === 3) { openShop(); return; }
+    if (dungeon[ny][nx] === 3) { openGeneralShop(); return; }
+    if (dungeon[ny][nx] === 4) { openMagicShop(); return; }
 
     let target = enemies.find(e => e.x === nx && e.y === ny);
     if (target) {
-        dealDamage(target, player.atk);
-        endTurn(); // 攻擊也要消耗回合
+        // 近戰攻擊
+        let dmg = player.meleeAtk;
+        dealDamage(target, dmg);
+        addLog(`⚔️ 近戰攻擊造成 ${dmg} 傷害`);
+        
+        // 被動：嗜血
+        if(player.passives.includes('lifesteal')) {
+            let heal = Math.floor(dmg * 0.05);
+            player.hp = Math.min(player.maxHp, player.hp + heal);
+            if(heal > 0) addLog(`🩸 嗜血恢復了 ${heal} 生命`);
+        }
+        endTurn();
     } else {
-        moveHistory.push({x: player.x, y: player.y});
-        if (moveHistory.length > 10) moveHistory.shift();
         player.x = nx; player.y = ny;
         if (dungeon[ny][nx] === 2) { floor++; initLevel(); return; }
+        
+        // 被動：神速
+        moveHistory.push({x: nx, y: ny});
+        if(player.passives.includes('speed') && moveHistory.length % 5 === 0) {
+            for(let k in player.spellCD) if(player.spellCD[k]>0) player.spellCD[k]--;
+            addLog("👟 神速觸發：技能冷卻縮短！");
+        }
         endTurn();
     }
 }
 
 function castSpell(key) {
-    if (!player.unlockedSpells.includes(key)) { addLog("❌ 你尚未學會此魔法！", "danger"); return; }
-    if (player.spellCD[key] > 0) { addLog(`⏳ 技能冷卻中！還剩 ${player.spellCD[key]} 回合`, "danger"); return; }
+    if (!player.unlockedSpells.includes(key)) return;
+    if (player.spellCD[key] > 0 || player.mp < SPELLS[key].cost) return;
     
     let s = SPELLS[key];
-    if (player.mp < s.cost) { addLog("🧪 能量不足！", "danger"); return; }
-    
     player.mp -= s.cost;
-    player.spellCD[key] = s.cd; // 設置冷卻
+    player.spellCD[key] = s.cd;
     addLog(`✨ 施放 ${s.name}！`, "magic");
 
-    // 技能邏輯 (保持不變)
+    let spellDmg = player.atk;
+    // 被動：暴擊
+    if(player.passives.includes('crit') && Math.random() < 0.2) {
+        spellDmg *= 2;
+        addLog("💥 奧術暴擊！傷害翻倍！", "magic");
+    }
+
     if (key === 'Q') {
         [[0,-1],[0,1],[-1,0],[1,0]].forEach(d => {
             for(let i=1; i<=5; i++) {
                 let tx = player.x+d[0]*i, ty = player.y+d[1]*i;
                 effects.push({x: tx, y: ty, life: 6, type: 'fire'});
                 let target = enemies.find(e => e.x === tx && e.y === ty);
-                if(target) { dealDamage(target, player.atk*2.5); break; }
+                if(target) { dealDamage(target, spellDmg * 2); break; }
             }
         });
     } else if (key === 'E') {
@@ -173,25 +206,22 @@ function castSpell(key) {
             let tx=player.x+dx, ty=player.y+dy;
             effects.push({x: tx, y: ty, life: 8, type: 'ice'});
             let target = enemies.find(e => e.x === tx && e.y === ty);
-            if(target) { target.isFrozen=3; dealDamage(target, player.atk*1.5); }
+            if(target) { target.isFrozen=3; dealDamage(target, spellDmg); }
         }
     } else if (key === 'R') {
-        let targetIdx = Math.max(0, moveHistory.length - 5);
-        let lastPos = moveHistory[targetIdx];
-        player.x = lastPos.x; player.y = lastPos.y;
-        moveHistory = moveHistory.slice(0, targetIdx);
+        let last = moveHistory[Math.max(0, moveHistory.length-5)] || {x:player.x, y:player.y};
+        player.x = last.x; player.y = last.y;
     } else if (key === 'F') {
         enemies.forEach(en => {
             effects.push({x: en.x, y: en.y, life: 10, type: 'sword'});
-            dealDamage(en, player.atk * 2);
+            dealDamage(en, spellDmg * 1.5);
         });
     } else if (key === 'V') {
         player.hp = Math.min(player.maxHp, player.hp + player.maxHp * 0.3);
         effects.push({x: player.x, y: player.y, life: 10, type: 'heal'});
     } else if (key === 'G') {
         enemies.forEach(en => {
-            en.isFrozen = 2;
-            dealDamage(en, 50);
+            en.isFrozen = 2; dealDamage(en, 60);
             effects.push({x: en.x, y: en.y, life: 15, type: 'gravity'});
         });
     }
@@ -200,136 +230,155 @@ function castSpell(key) {
 
 function dealDamage(en, dmg) {
     en.hp -= dmg;
-    if(en.hp <= 0) {
-        gold += 20;
-        enemies = enemies.filter(e => e !== en);
-    }
+    if(en.hp <= 0) { gold += 30; enemies = enemies.filter(e => e !== en); }
 }
 
 function endTurn() {
-    // 1. 冷卻時間遞減
-    for (let key in player.spellCD) {
-        if (player.spellCD[key] > 0) player.spellCD[key]--;
-    }
+    for (let k in player.spellCD) if (player.spellCD[k] > 0) player.spellCD[k]--;
 
-    // 2. 怪物 AI 邏輯 (包含防重疊)
     enemies.forEach(en => {
         if(en.isFrozen > 0) { en.isFrozen--; return; }
+        let dx = Math.sign(player.x - en.x), dy = Math.sign(player.y - en.y);
         
-        let dx = Math.sign(player.x - en.x);
-        let dy = Math.sign(player.y - en.y);
-        
-        // 檢查是否緊鄰玩家 (攻擊)
         if(Math.abs(player.x-en.x)+Math.abs(player.y-en.y) === 1) {
-            player.hp -= en.atk;
-            addLog(`💢 受到怪物攻擊！減少 ${en.atk} HP`, "danger");
+            // 計算傷害與防禦
+            let rawDmg = en.atk;
+            let finalDmg = Math.max(1, rawDmg - player.defense);
+            
+            // 被動：能量護盾
+            if(player.passives.includes('shield') && player.mp > 0) {
+                let mpConsume = Math.floor(finalDmg * 0.5);
+                player.mp = Math.max(0, player.mp - mpConsume);
+                finalDmg = Math.ceil(finalDmg * 0.5);
+                addLog(`🛡️ 護盾抵擋了部分傷害 (消耗 ${mpConsume} MP)`);
+            }
+
+            player.hp -= finalDmg;
+            addLog(`💢 受傷 -${finalDmg} HP`, "danger");
+
+            // 被動：荊棘
+            if(player.passives.includes('thorns')) {
+                let reflect = Math.floor(rawDmg * 0.2);
+                dealDamage(en, reflect);
+                addLog(`🌵 荊棘反彈了 ${reflect} 傷害`);
+            }
         } else {
-            // 嘗試移動 (先橫向再縱向)
-            let moved = false;
-            let moves = [[dx, 0], [0, dy]];
-            for(let m of moves) {
-                let nx = en.x + m[0], ny = en.y + m[1];
-                // 檢查：牆壁、玩家位置、其他怪物位置
-                let isBlocked = (dungeon[ny][nx] === 1) || 
-                                (nx === player.x && ny === player.y) ||
-                                (enemies.some(other => other !== en && other.x === nx && other.y === ny));
-                
-                if (!isBlocked) {
-                    en.x = nx; en.y = ny;
-                    moved = true;
-                    break;
-                }
+            let nx = en.x + dx, ny = en.y + dy;
+            if (dungeon[ny][nx] === 0 && !(nx === player.x && ny === player.y) && !enemies.some(e=>e.x===nx && e.y===ny)) {
+                en.x = nx; en.y = ny;
             }
         }
     });
     
-    // 3. 資源恢復
-    mpRegenCounter++;
-    if(mpRegenCounter >= 10) {
-        player.mp = Math.min(player.maxMp, player.mp + player.regen);
-        mpRegenCounter = 0;
-    }
-    
+    // 能量恢復
+    let mRegen = player.regen + (player.passives.includes('wisdom') ? 1 : 0);
+    player.mp = Math.min(player.maxMp, player.mp + mRegen/10); 
+
     if(player.hp <= 0) { alert("冒險結束！"); location.reload(); }
     updateUI();
 }
 
-// --- UI 與商店 (保持不變) ---
-function openShop() {
-    document.getElementById('shop-ui').style.display = 'block';
-    let list = document.getElementById('shop-list');
+// --- 商店系統 ---
+function openGeneralShop() {
+    const shopUI = document.getElementById('shop-ui');
+    const list = document.getElementById('shop-list');
+    document.getElementById('shop-title').innerHTML = "🏪 一般商店";
+    shopUI.style.display = 'block';
     list.innerHTML = "";
-    SHOP_ITEMS.forEach(item => {
+
+    const items = [
+        { name: "💊 回復生命", desc: "恢復 50% 最大生命", price: 50, effect: () => { player.hp = Math.min(player.maxHp, player.hp + player.maxHp*0.5); } },
+        { name: "⚔️ 磨刀石", desc: "近戰攻擊力 +5", price: 100, effect: () => { player.meleeAtk += 5; } },
+        { name: "🛡️ 鐵甲片", desc: "防禦力 +2", price: 100, effect: () => { player.defense += 2; } },
+        { name: "❤️ 體力增幅", desc: "最大生命 +20", price: 150, effect: () => { player.maxHp += 20; player.hp += 20; } }
+    ];
+
+    items.forEach(item => {
         let div = document.createElement('div');
         div.className = "shop-item";
-        div.innerHTML = `<span>${item.name}</span><span class="price">💰${item.price}</span>`;
-        div.onclick = () => buyItem(item);
+        div.innerHTML = `<div><b>${item.name}</b><br><small class="item-desc">${item.desc}</small></div><span class="price">💰${item.price}</span>`;
+        div.onclick = () => { if(gold >= item.price) { gold -= item.price; item.effect(); addLog(`🛒 購買了 ${item.name}`); openGeneralShop(); updateUI(); } };
         list.appendChild(div);
     });
-    Object.keys(SPELLS).forEach(key => {
-        if (!player.unlockedSpells.includes(key)) {
-            let s = SPELLS[key];
+
+    // 隨機列出 3 個未擁有的被動
+    Object.keys(PASSIVES).forEach(pid => {
+        if(!player.passives.includes(pid)) {
+            let p = PASSIVES[pid];
             let div = document.createElement('div');
             div.className = "shop-item";
-            div.innerHTML = `<span>📜 學習 ${s.name} (${key})</span><span class="price">💰${s.price}</span>`;
-            div.onclick = () => buySpell(key);
+            div.innerHTML = `<div><b style="color:#27ae60">💎 ${p.name}</b><br><small class="item-desc">${p.desc}</small></div><span class="price">💰${p.price}</span>`;
+            div.onclick = () => { if(gold >= p.price) { gold -= p.price; player.passives.push(pid); addLog(`💡 獲得被動：${p.name}`); openGeneralShop(); updateUI(); } };
             list.appendChild(div);
         }
     });
 }
 
-function buyItem(item) {
-    if (gold >= item.price) {
-        gold -= item.price;
-        item.effect();
-        addLog(`🛒 購買了 ${item.name}`);
-        openShop(); updateUI();
-    } else { addLog("❌ 金幣不足！", "danger"); }
-}
+function openMagicShop() {
+    const shopUI = document.getElementById('shop-ui');
+    const list = document.getElementById('shop-list');
+    document.getElementById('shop-title').innerHTML = "🔮 魔法商店";
+    shopUI.style.display = 'block';
+    list.innerHTML = "";
 
-function buySpell(key) {
-    let s = SPELLS[key];
-    if (gold >= s.price) {
-        gold -= s.price;
-        player.unlockedSpells.push(key);
-        addLog(`📖 習得魔法：${s.name}！`);
-        openShop(); updateUI();
-    } else { addLog("❌ 金幣不足！", "danger"); }
+    Object.keys(SPELLS).forEach(key => {
+        if (!player.unlockedSpells.includes(key)) {
+            let s = SPELLS[key];
+            let div = document.createElement('div');
+            div.className = "shop-item";
+            div.innerHTML = `<div><b>📜 學習 ${s.name}</b><br><small class="item-desc">${s.desc}</small></div><span class="price">💰${s.price}</span>`;
+            div.onclick = () => { if(gold >= s.price) { gold -= s.price; player.unlockedSpells.push(key); addLog(`📖 習得：${s.name}`); openMagicShop(); updateUI(); } };
+            list.appendChild(div);
+        }
+    });
+    
+    // 提供法術強度升級
+    let upgPrice = 200 + floor * 50;
+    let div = document.createElement('div');
+    div.className = "shop-item";
+    div.innerHTML = `<div><b>🧪 奧術強化</b><br><small class="item-desc">術力(魔法傷害) +5</small></div><span class="price">💰${upgPrice}</span>`;
+    div.onclick = () => { if(gold >= upgPrice) { gold -= upgPrice; player.atk += 5; openMagicShop(); updateUI(); } };
+    list.appendChild(div);
 }
 
 function closeShop() { document.getElementById('shop-ui').style.display = 'none'; }
 
 function updateUI() {
     document.getElementById('s-hp').innerText = `${Math.floor(player.hp)}/${player.maxHp}`;
-    document.getElementById('s-mp').innerText = `${player.mp}/${player.maxMp}`;
+    document.getElementById('s-mp').innerText = `${Math.floor(player.mp)}/${player.maxMp}`;
+    document.getElementById('s-matk').innerText = player.meleeAtk;
+    document.getElementById('s-atk').innerText = player.atk;
+    document.getElementById('s-def').innerText = player.defense;
     document.getElementById('s-gold').innerText = gold;
     document.getElementById('s-floor').innerText = floor;
     
-    let spellUI = document.getElementById('spell-list-ui');
-    spellUI.innerHTML = "";
+    let pUI = document.getElementById('passive-list');
+    pUI.innerHTML = player.passives.map(p => `<span class="passive-tag">${PASSIVES[p].name}</span>`).join('');
+
+    let sUI = document.getElementById('spell-list-ui');
+    sUI.innerHTML = "";
     Object.keys(SPELLS).forEach(key => {
         let s = SPELLS[key];
-        let isUnlocked = player.unlockedSpells.includes(key);
-        let currentCD = player.spellCD[key];
-        let cdPercent = s.cd > 0 ? (currentCD / s.cd) * 100 : 0;
-        
-        spellUI.innerHTML += `
-            <div class="spell-card ${isUnlocked?'unlocked':''} ${currentCD>0?'on-cd':''}">
-                <div class="cd-overlay" style="width:${cdPercent}%"></div>
-                <span class="spell-key">${key}</span> ${s.name} (${s.cost}MP)
-                <div style="font-size:11px; color:#666;">${isUnlocked ? (currentCD > 0 ? `⏳ 冷卻中: ${currentCD}回` : s.desc) : '🔒 未解鎖'}</div>
+        let unlocked = player.unlockedSpells.includes(key);
+        let cd = player.spellCD[key];
+        sUI.innerHTML += `
+            <div class="spell-card ${unlocked?'unlocked':''}">
+                <div class="cd-overlay" style="width:${(cd/s.cd)*100}%"></div>
+                <span style="font-weight:bold">[${key}] ${s.name}</span>
+                <div style="font-size:11px; color:#aaa;">${unlocked ? (cd > 0 ? `冷卻 ${cd} 回合` : s.desc) : '🔒 未學會'}</div>
             </div>`;
     });
 }
 
 function draw() {
     ctx.clearRect(0,0,750,600);
-    ctx.textAlign = "center"; ctx.textBaseline = "middle";
     for(let y=0; y<GH; y++) for(let x=0; x<GW; x++) {
         ctx.fillStyle = dungeon[y][x] === 1 ? "#222" : "#080808";
         ctx.fillRect(x*TILE, y*TILE, TILE, TILE);
-        if(dungeon[y][x] === 2) ctx.fillText("🪜", x*TILE+TILE/2, y*TILE+TILE/2);
-        if(dungeon[y][x] === 3) ctx.fillText("🛒", x*TILE+TILE/2, y*TILE+TILE/2);
+        ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = "20px Arial";
+        if(dungeon[y][x] === 2) ctx.fillText("🪜", x*TILE+15, y*TILE+15);
+        if(dungeon[y][x] === 3) ctx.fillText("🏪", x*TILE+15, y*TILE+15);
+        if(dungeon[y][x] === 4) ctx.fillText("🔮", x*TILE+15, y*TILE+15);
     }
     effects.forEach((eff, i) => {
         ctx.globalAlpha = eff.life / 10;
@@ -340,16 +389,14 @@ function draw() {
     ctx.globalAlpha = 1;
     enemies.forEach(en => {
         ctx.fillStyle = en.isFrozen > 0 ? "#3498db" : "#e74c3c";
-        ctx.font = "20px Arial"; ctx.fillText("👺", en.x*TILE+TILE/2, en.y*TILE+TILE/2);
+        ctx.fillText("👺", en.x*TILE+15, en.y*TILE+15);
     });
-    ctx.font = "24px Arial"; ctx.fillText("🧙", player.x*TILE+TILE/2, player.y*TILE+TILE/2);
+    ctx.fillText("🧙", player.x*TILE+15, player.y*TILE+15);
 }
 
 function addLog(m, cl="") {
     let d = document.createElement('div'); d.className = cl; d.innerText = "> " + m;
-    let logInner = document.getElementById('log-inner');
-    logInner.prepend(d);
-    if(logInner.childNodes.length > 50) logInner.lastChild.remove();
+    document.getElementById('log-inner').prepend(d);
 }
 
 window.addEventListener('keydown', e => {
