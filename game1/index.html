@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>深淵獵手：奧術資源版</title>
+    <title>深淵獵手：輪迴挑戰版</title>
     <style>
         body { background: #050505; color: #eee; font-family: 'Consolas', monospace; display: flex; flex-direction: column; align-items: center; margin: 0; overflow: hidden; }
         .game-layout { display: flex; gap: 15px; padding: 15px; width: 1450px; height: 98vh; box-sizing: border-box; }
@@ -11,11 +11,18 @@
         .stat-val { float: right; font-weight: bold; }
         #game-area { position: relative; }
         canvas { background: #000; border: 4px solid #3498db; }
+        
+        /* BOSS 血條 */
+        #boss-ui { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 400px; display: none; text-align: center; }
+        #boss-bar { width: 100%; height: 12px; background: #333; border: 2px solid #fff; border-radius: 6px; overflow: hidden; }
+        #boss-fill { width: 100%; height: 100%; background: linear-gradient(to right, #e74c3c, #c0392b); transition: 0.2s; }
+
         .right-panel { width: 400px; display: flex; flex-direction: column; gap: 10px; }
         .log { height: 300px; background: #000; padding: 10px; font-size: 13px; border: 1px solid #333; overflow-y: auto; color: #aaa; border-radius: 8px; }
         .spell-card { background: #1e272e; padding: 6px; border: 1px solid #3d3d3d; border-radius: 5px; margin-bottom: 4px; opacity: 0.4; position: relative; font-size: 12px; }
         .spell-card.unlocked { opacity: 1; border-color: #3498db; }
         .cd-overlay { position: absolute; top:0; left:0; height:100%; background: rgba(52, 152, 219, 0.2); width: 0%; pointer-events: none; }
+        
         #shop-ui { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 480px; background: #1a1a1a; border: 3px solid #f1c40f; padding: 20px; display: none; z-index: 100; border-radius: 10px; max-height: 80vh; overflow-y: auto; }
         .shop-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #333; cursor: pointer; }
         .shop-item:hover { background: #222; }
@@ -25,40 +32,47 @@
 </head>
 <body>
 
+<div id="boss-ui">
+    <div id="boss-name" style="color: #e74c3c; font-weight: bold; margin-bottom: 5px;">BOSS</div>
+    <div id="boss-bar"><div id="boss-fill"></div></div>
+</div>
+
 <div id="shop-ui">
-    <h2 id="shop-title" style="text-align:center; margin-top:0; color:#f1c40f;">🛒 商店</h2>
+    <h2 id="shop-title" style="text-align:center; margin-top:0; color:#f1c40f;">🛒 半價特惠商店</h2>
     <div id="shop-list"></div>
-    <button onclick="closeShop()" style="width:100%; margin-top:15px; padding:10px; background:#444; color:white; border:none; cursor:pointer; border-radius:5px;">離開</button>
+    <button onclick="closeShop()" style="width:100%; margin-top:15px; padding:10px; background:#444; color:white; border:none; cursor:pointer;">離開</button>
 </div>
 
 <div class="game-layout">
     <div class="sidebar">
-        <h3 style="color:#3498db; text-align:center; margin-bottom:10px;">🧙 奧術使者</h3>
+        <h3 style="color:#3498db; text-align:center;">🧙 奧術使者</h3>
         <div class="stat-line">❤️ 生命 <span id="s-hp" class="stat-val" style="color:#e74c3c">100/100</span></div>
         <div class="stat-line">🧪 能量 <span id="s-mp" class="stat-val" style="color:#3498db">20/20</span></div>
         <div class="stat-line">⚔️ 近戰 <span id="s-matk" class="stat-val" style="color:#e67e22">10</span></div>
-        <div class="stat-line">🔮 術力 <span id="s-atk" class="stat-val" style="color:#9b59b6">15</span></div>
+        <div class="stat-line">🔮 術力 <span id="s-atk" class="stat-val" style="color:#9b59b6">10</span></div>
         <div class="stat-line">🛡️ 防禦 <span id="s-def" class="stat-val" style="color:#95a5a6">0</span></div>
         <div class="stat-line">💰 金幣 <span id="s-gold" class="stat-val" style="color:#f1c40f">0</span></div>
         <div class="stat-line">🏰 層數 <span id="s-floor" class="stat-val">1</span></div>
+        <div class="stat-line">🌀 輪迴 <span id="s-cycle" class="stat-val" style="color:#2ecc71">1</span></div>
         <hr border="0" style="border-top:1px solid #333">
-        <h4>已啟動被動:</h4>
+        <h4>被動能力:</h4>
         <div id="passive-list"></div>
         <hr border="0" style="border-top:1px solid #333">
-        <h4>技能冷卻狀態:</h4>
+        <h4>技能冷卻:</h4>
         <div id="spell-list-ui"></div>
     </div>
 
-    <div id="game-area"><canvas id="gameCanvas" width="750" height="600"></canvas></div>
+    <div id="game-area">
+        <canvas id="gameCanvas" width="750" height="600"></canvas>
+    </div>
 
     <div class="right-panel">
         <div class="log" id="log"><div id="log-inner"></div></div>
         <div style="background:#151515; border:2px solid #333; padding:12px; border-radius:8px; flex-grow:1; font-size:12px;">
-            <h4 style="margin:0 0 8px 0; color:#f1c40f;">📖 冒險指南</h4>
-            * <b>MP不會自動恢復</b>，請去魔法商店買藥水。<br>
-            * 火球術現在有 2 回合冷卻。<br>
-            * 怪物強度已下調，適合初期探索。<br>
-            * 每個被動能力都能極大改變戰鬥風格。
+            <h4 style="margin:0 0 8px 0; color:#f1c40f;">📜 輪迴規則</h4>
+            * 擊敗 <b>5, 10, 15, 20層</b> 的 BOSS 完成一輪。<br>
+            * 完成 20 層後，怪物的基礎強度才會提升。<br>
+            * **商店所有價格已減半！**
         </div>
     </div>
 </div>
@@ -68,10 +82,10 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const TILE = 30, GW = 25, GH = 20;
 
-let floor = 1, gold = 80;
+let floor = 1, gold = 100, cycle = 1;
 let player = { 
-    x: 5, y: 5, hp: 100, maxHp: 100, mp: 20, maxMp: 20, 
-    atk: 10, meleeAtk: 8, defense: 0,
+    x: 5, y: 5, hp: 100, maxHp: 100, mp: 30, maxMp: 30, 
+    atk: 10, meleeAtk: 10, defense: 0,
     unlockedSpells: ['Q'],
     spellCD: { 'Q':0, 'E':0, 'R':0, 'F':0, 'V':0, 'G':0, 'B':0, 'X':0 },
     passives: []
@@ -80,30 +94,30 @@ let player = {
 let dungeon = [], enemies = [], effects = [], moveHistory = [];
 
 const SPELLS = {
-    'Q': { name: '火球術', cost: 2, cd: 2, desc: '基礎遠程打擊', price: 0 },
-    'E': { name: '冰爆陣', cost: 5, cd: 5, desc: '5x5範圍凍結', price: 150 },
-    'R': { name: '時空回溯', cost: 3, cd: 8, desc: '回到5步前位置', price: 100 },
-    'F': { name: '萬劍訣', cost: 8, cd: 10, desc: '打擊全屏敵軍', price: 350 },
-    'V': { name: '聖光治癒', cost: 4, cd: 12, desc: '定額恢復生命', price: 200 },
-    'G': { name: '重力場', cost: 10, cd: 15, desc: '全屏傷害與控制', price: 450 },
-    'B': { name: '奧術閃爍', cost: 2, cd: 4, desc: '隨機傳送至空位', price: 120 },
-    'X': { name: '毀滅新星', cost: 15, cd: 20, desc: '極高額全屏傷害', price: 600 }
+    'Q': { name: '火球術', cost: 2, cd: 2, desc: '射程5', price: 0 },
+    'E': { name: '冰爆陣', cost: 5, cd: 5, desc: '範圍凍結', price: 75 }, // 原 150
+    'R': { name: '時空回溯', cost: 3, cd: 8, desc: '回到5步前', price: 50 }, // 原 100
+    'F': { name: '萬劍訣', cost: 8, cd: 10, desc: '全屏打擊', price: 175 }, // 原 350
+    'V': { name: '聖光治癒', cost: 4, cd: 12, desc: '恢復30生命', price: 100 }, // 原 200
+    'G': { name: '重力場', cost: 10, cd: 15, desc: '全屏高傷控場', price: 225 }, // 原 450
+    'B': { name: '奧術閃爍', cost: 2, cd: 4, desc: '隨機傳送', price: 60 }, // 原 120
+    'X': { name: '毀滅新星', cost: 15, cd: 20, desc: '核彈級傷害', price: 300 } // 原 600
 };
 
 const PASSIVES = {
-    'vamp': { name: '嗜血精通', desc: '近戰攻擊恢復 3 HP', price: 250 },
-    'thorns': { name: '尖刺外殼', desc: '反彈 30% 受到的傷害', price: 200 },
-    'mana_flow': { name: '魔力流轉', desc: '擊殺敵人獲得 2 MP', price: 300 },
-    'crit': { name: '奧術狂暴', desc: '魔法 25% 機率造成 2.5倍傷害', price: 400 },
-    'shield': { name: '能量護盾', desc: '受傷時 40% 傷害由 MP 吸收', price: 350 },
-    'luck': { name: '黃金律', desc: '獲得的金幣增加 50%', price: 200 },
-    'focus': { name: '戰鬥專注', desc: '近戰攻擊降低 1 回合隨機技能 CD', price: 300 },
-    'barrier': { name: '靜態防禦', desc: '滿 MP 時防禦力額外 +5', price: 250 }
+    'vamp': { name: '嗜血精通', desc: '近戰恢復 3 HP', price: 125 },
+    'thorns': { name: '尖刺外殼', desc: '反彈 30% 傷害', price: 100 },
+    'mana_flow': { name: '魔力流轉', desc: '殺敵回 2 MP', price: 150 },
+    'crit': { name: '奧術狂暴', desc: '25%機率2.5倍傷', price: 200 },
+    'shield': { name: '能量護盾', desc: 'MP 吸收 40% 傷害', price: 175 },
+    'luck': { name: '黃金律', desc: '金幣增加 50%', price: 100 }
 };
 
 function initLevel() {
     dungeon = Array(GH).fill().map(() => Array(GW).fill(1));
     enemies = []; effects = [];
+    document.getElementById('boss-ui').style.display = 'none';
+
     let cx = 12, cy = 10; player.x = cx; player.y = cy;
     for(let i=0; i<600; i++) {
         dungeon[cy][cx] = 0;
@@ -111,10 +125,16 @@ function initLevel() {
         if(d===0 && cy>1) cy--; else if(d===1 && cy<GH-2) cy++;
         else if(d===2 && cx>1) cx--; else if(d===3 && cx<GW-2) cx++;
     }
-    place(2, 1); // 出口
-    place(3, 1); // 一般商店
-    place(4, 1); // 魔法商店
-    for(let i=0; i<2 + Math.floor(floor/2); i++) spawnEnemy();
+
+    if (floor % 5 === 0) {
+        spawnBoss();
+    } else {
+        place(2, 1); // 梯子
+        place(3, 1); // 一般
+        place(4, 1); // 魔法
+        let count = 3 + Math.floor(floor/3);
+        for(let i=0; i<count; i++) spawnEnemy();
+    }
     updateUI();
 }
 
@@ -122,8 +142,38 @@ function spawnEnemy() {
     let x, y;
     do { x = Math.floor(Math.random()*GW); y = Math.floor(Math.random()*GH); }
     while(dungeon[y][x] !== 0 || (x===player.x && y===player.y));
-    // 降低難度：血量與攻擊成長下調
-    enemies.push({ x, y, hp: 30+floor*8, maxHp: 30+floor*8, atk: 5+floor, isFrozen: 0 });
+    // 怪物強度只跟 Cycle 有關，跟 Floor 關係變小
+    enemies.push({ 
+        x, y, 
+        hp: 30 + (cycle-1)*50, 
+        maxHp: 30 + (cycle-1)*50, 
+        atk: 5 + (cycle-1)*5, 
+        isBoss: false, 
+        showBar: false 
+    });
+}
+
+function spawnBoss() {
+    let x, y;
+    do { x = Math.floor(Math.random()*GW); y = Math.floor(Math.random()*GH); }
+    while(dungeon[y][x] !== 0);
+    
+    let bossType = floor / 5;
+    let names = ["深淵守門人", "寒冰巨獸", "奧術魔影", "深淵主宰"];
+    let boss = { 
+        x, y, 
+        hp: 200 + bossType*100 + (cycle-1)*500, 
+        maxHp: 200 + bossType*100 + (cycle-1)*500, 
+        atk: 10 + bossType*5 + (cycle-1)*10, 
+        name: names[bossType-1] || "最終威脅",
+        isBoss: true,
+        showBar: true
+    };
+    enemies.push(boss);
+    document.getElementById('boss-ui').style.display = 'block';
+    document.getElementById('boss-name').innerText = boss.name;
+    updateBossBar(boss);
+    addLog(`⚠️ 注意！BOSS「${boss.name}」已出現！`, "danger");
 }
 
 function place(val, n) {
@@ -143,36 +193,26 @@ function tryMove(dx, dy) {
 
     let target = enemies.find(e => e.x === nx && e.y === ny);
     if (target) {
-        let dmg = player.meleeAtk;
-        dealDamage(target, dmg, "近戰");
-        if(player.passives.includes('vamp')) { player.hp = Math.min(player.maxHp, player.hp + 3); }
-        if(player.passives.includes('focus')) {
-            let keys = Object.keys(player.spellCD).filter(k => player.spellCD[k] > 0);
-            if(keys.length > 0) player.spellCD[keys[Math.floor(Math.random()*keys.length)]]--;
-        }
+        dealDamage(target, player.meleeAtk, "近戰");
+        if(player.passives.includes('vamp')) player.hp = Math.min(player.maxHp, player.hp + 3);
         endTurn();
     } else {
-        moveHistory.push({x: player.x, y: player.y});
-        if(moveHistory.length > 10) moveHistory.shift();
         player.x = nx; player.y = ny;
-        if (dungeon[ny][nx] === 2) { floor++; initLevel(); return; }
+        if (dungeon[ny][nx] === 2) { 
+            floor++; 
+            if(floor > 20) { floor = 1; cycle++; addLog("🌌 輪迴成功！難度已提升！"); }
+            initLevel(); 
+            return; 
+        }
         endTurn();
     }
 }
 
 function castSpell(key) {
-    if (!player.unlockedSpells.includes(key)) return;
-    if (player.spellCD[key] > 0) { addLog(`⏳ 技能冷卻中 (${player.spellCD[key]}步)`, "danger"); return; }
-    let s = SPELLS[key];
-    if (player.mp < s.cost) { addLog("🧪 魔力不足！", "danger"); return; }
-    
-    player.mp -= s.cost;
-    player.spellCD[key] = s.cd;
+    if (!player.unlockedSpells.includes(key) || player.spellCD[key] > 0 || player.mp < SPELLS[key].cost) return;
+    let s = SPELLS[key]; player.mp -= s.cost; player.spellCD[key] = s.cd;
     let baseDmg = player.atk;
-    if(player.passives.includes('crit') && Math.random() < 0.25) {
-        baseDmg = Math.floor(baseDmg * 2.5);
-        addLog("💥 奧術暴擊！", "magic");
-    }
+    if(player.passives.includes('crit') && Math.random() < 0.25) { baseDmg = Math.floor(baseDmg * 2.5); addLog("💥 暴擊！", "magic"); }
 
     if (key === 'Q') {
         [[0,-1],[0,1],[-1,0],[1,0]].forEach(d => {
@@ -183,59 +223,52 @@ function castSpell(key) {
                 if(target) { dealDamage(target, baseDmg + 10, "火球術"); break; }
             }
         });
-    } else if (key === 'E') {
-        enemies.forEach(en => {
-            if(Math.abs(en.x-player.x)<=2 && Math.abs(en.y-player.y)<=2) {
-                en.isFrozen = 3; dealDamage(en, baseDmg, "冰爆陣");
-                effects.push({x: en.x, y: en.y, life: 10, type: 'ice'});
-            }
-        });
-    } else if (key === 'B') {
-        let x, y;
-        do { x = Math.floor(Math.random()*GW); y = Math.floor(Math.random()*GH); } while(dungeon[y][x] !== 0);
-        player.x = x; player.y = y; addLog("🌀 瞬間移動！");
     } else if (key === 'F') {
         enemies.forEach(en => { dealDamage(en, baseDmg + 5, "萬劍訣"); effects.push({x: en.x, y: en.y, life: 8, type: 'sword'}); });
     } else if (key === 'V') {
-        player.hp = Math.min(player.maxHp, player.hp + 30);
-        addLog("✨ 聖光治癒恢復 30 生命");
-    } else if (key === 'G') {
-        enemies.forEach(en => { en.isFrozen = 2; dealDamage(en, baseDmg + 20, "重力場"); });
+        player.hp = Math.min(player.maxHp, player.hp + 30); addLog("✨ 治癒 30");
     } else if (key === 'X') {
         enemies.forEach(en => { dealDamage(en, baseDmg + 80, "毀滅新星"); effects.push({x: en.x, y: en.y, life: 15, type: 'gravity'}); });
+    } else if (key === 'B') {
+        let x, y; do { x = Math.floor(Math.random()*GW); y = Math.floor(Math.random()*GH); } while(dungeon[y][x] !== 0);
+        player.x = x; player.y = y; addLog("🌀 閃爍！");
     }
     endTurn();
 }
 
 function dealDamage(en, dmg, source) {
     en.hp -= dmg;
-    addLog(`✨ ${source} 造成 ${dmg} 傷害`);
+    en.showBar = true; // 受到傷害後顯示血條
+    addLog(`⚔️ ${source} -> ${dmg}`, "magic");
+    if(en.isBoss) updateBossBar(en);
+
     if(en.hp <= 0) {
-        let reward = 20 + Math.floor(Math.random()*15);
-        if(player.passives.includes('luck')) reward = Math.floor(reward * 1.5);
-        gold += reward;
+        gold += en.isBoss ? 200 : 15;
         if(player.passives.includes('mana_flow')) player.mp = Math.min(player.maxMp, player.mp + 2);
+        if(en.isBoss) {
+            dungeon[en.y][en.x] = 2; // BOSS 死掉變梯子
+            addLog(`🏆 擊敗了 ${en.name}！通往下層的路已開啟。`, "magic");
+            document.getElementById('boss-ui').style.display = 'none';
+        }
         enemies = enemies.filter(e => e !== en);
     }
+}
+
+function updateBossBar(boss) {
+    let p = (boss.hp / boss.maxHp) * 100;
+    document.getElementById('boss-fill').style.width = Math.max(0, p) + "%";
 }
 
 function endTurn() {
     for (let k in player.spellCD) if (player.spellCD[k] > 0) player.spellCD[k]--;
     enemies.forEach(en => {
-        if(en.isFrozen > 0) { en.isFrozen--; return; }
         let dx = Math.sign(player.x - en.x), dy = Math.sign(player.y - en.y);
         if(Math.abs(player.x-en.x)+Math.abs(player.y-en.y) === 1) {
-            let dmg = Math.max(1, en.atk - (player.defense + (player.passives.includes('barrier') && player.mp >= player.maxMp ? 5 : 0)));
+            let dmg = Math.max(1, en.atk - player.defense);
             if(player.passives.includes('shield') && player.mp > 0) {
-                let absorb = Math.floor(dmg * 0.4);
-                player.mp = Math.max(0, player.mp - absorb);
-                dmg -= absorb;
+                let abs = Math.floor(dmg * 0.4); player.mp = Math.max(0, player.mp - abs); dmg -= abs;
             }
-            player.hp -= dmg; addLog(`👺 受到傷害 -${dmg}`, "danger");
-            if(player.passives.includes('thorns')) {
-                let reflect = Math.floor(en.atk * 0.3);
-                en.hp -= reflect; addLog(`🌵 反彈傷害 ${reflect}`);
-            }
+            player.hp -= dmg; addLog(`👺 受傷 -${dmg}`, "danger");
         } else {
             let nx = en.x + dx, ny = en.y + dy;
             if (dungeon[ny][nx] === 0 && !(nx === player.x && ny === player.y) && !enemies.some(e=>e.x===nx && e.y===ny)) {
@@ -243,23 +276,17 @@ function endTurn() {
             }
         }
     });
-    if(player.hp <= 0) { alert("你倒在了深淵中..."); location.reload(); }
+    if(player.hp <= 0) { alert("冒險結束"); location.reload(); }
     updateUI();
 }
 
 function openGeneralShop() {
     const list = document.getElementById('shop-list');
-    document.getElementById('shop-title').innerText = "🏪 一般物資店";
     document.getElementById('shop-ui').style.display = 'block';
     list.innerHTML = "";
-    const items = [
-        { n: "❤️ 生命藥劑 (+30)", p: 30, f: () => { player.hp = Math.min(player.maxHp, player.hp+30); } },
-        { n: "⚔️ 近戰強化 (+4)", p: 80, f: () => { player.meleeAtk += 4; } },
-        { n: "🛡️ 防禦強化 (+2)", p: 80, f: () => { player.defense += 2; } }
-    ];
-    items.forEach(i => createShopItem(i.n, i.p, i.f));
-    
-    // 隨機 3 種被動
+    createShopItem("❤️ 補血藥 (+30)", 15, () => player.hp = Math.min(player.maxHp, player.hp+30));
+    createShopItem("⚔️ 近戰強化 (+4)", 40, () => player.meleeAtk += 4);
+    createShopItem("🛡️ 防禦強化 (+2)", 40, () => player.defense += 2);
     let pKeys = Object.keys(PASSIVES).filter(k => !player.passives.includes(k));
     pKeys.sort(() => Math.random() - 0.5).slice(0, 3).forEach(k => {
         createShopItem(`💡 ${PASSIVES[k].name}`, PASSIVES[k].price, () => player.passives.push(k), PASSIVES[k].desc);
@@ -268,13 +295,10 @@ function openGeneralShop() {
 
 function openMagicShop() {
     const list = document.getElementById('shop-list');
-    document.getElementById('shop-title').innerText = "🔮 奧術魔法店";
     document.getElementById('shop-ui').style.display = 'block';
     list.innerHTML = "";
-    createShopItem("🧪 魔力藥劑 (+15)", 25, () => { player.mp = Math.min(player.maxMp, player.mp+15); });
-    createShopItem("🔮 術力強化 (+5)", 100, () => { player.atk += 5; });
-    
-    // 隨機 2 種魔法
+    createShopItem("🧪 補藍藥 (+15)", 12, () => player.mp = Math.min(player.maxMp, player.mp+15));
+    createShopItem("🔮 術力強化 (+5)", 50, () => player.atk += 5);
     let sKeys = Object.keys(SPELLS).filter(k => !player.unlockedSpells.includes(k));
     sKeys.sort(() => Math.random() - 0.5).slice(0, 2).forEach(k => {
         createShopItem(`📜 學習 ${SPELLS[k].name}`, SPELLS[k].price, () => player.unlockedSpells.push(k), SPELLS[k].desc);
@@ -285,12 +309,9 @@ function createShopItem(name, price, func, desc = "") {
     const list = document.getElementById('shop-list');
     let div = document.createElement('div');
     div.className = "shop-item";
-    div.innerHTML = `<div><b>${name}</b><br><small style="color:#888">${desc}</small></div><span class="price">💰${price}</span>`;
+    div.innerHTML = `<div><b>${name}</b><br><small>${desc}</small></div><span class="price">💰${price}</span>`;
     div.onclick = () => {
-        if(gold >= price) { gold -= price; func(); addLog(`🛒 購買了 ${name}`); updateUI(); 
-            if(document.getElementById('shop-title').innerText.includes("一般")) openGeneralShop();
-            else openMagicShop();
-        } else addLog("❌ 金幣不足！", "danger");
+        if(gold >= price) { gold -= price; func(); updateUI(); closeShop(); }
     };
     list.appendChild(div);
 }
@@ -298,60 +319,58 @@ function createShopItem(name, price, func, desc = "") {
 function closeShop() { document.getElementById('shop-ui').style.display = 'none'; }
 
 function updateUI() {
-    document.getElementById('s-hp').innerText = `${Math.floor(player.hp)}/${player.maxHp}`;
-    document.getElementById('s-mp').innerText = `${player.mp}/${player.maxMp}`;
+    document.getElementById('s-hp').innerText = Math.floor(player.hp);
+    document.getElementById('s-mp').innerText = player.mp;
     document.getElementById('s-matk').innerText = player.meleeAtk;
     document.getElementById('s-atk').innerText = player.atk;
     document.getElementById('s-def').innerText = player.defense;
     document.getElementById('s-gold').innerText = gold;
     document.getElementById('s-floor').innerText = floor;
+    document.getElementById('s-cycle').innerText = cycle;
     document.getElementById('passive-list').innerHTML = player.passives.map(p => `<span class="passive-tag">${PASSIVES[p].name}</span>`).join('');
-
+    
     let sUI = document.getElementById('spell-list-ui');
     sUI.innerHTML = "";
     Object.keys(SPELLS).forEach(key => {
-        let s = SPELLS[key];
-        let unlocked = player.unlockedSpells.includes(key);
-        let cd = player.spellCD[key];
-        sUI.innerHTML += `
-            <div class="spell-card ${unlocked?'unlocked':''}">
-                <div class="cd-overlay" style="width:${(cd/s.cd)*100}%"></div>
-                <b>[${key}] ${s.name}</b> (消耗 ${s.cost}MP)
-                <div>${unlocked ? (cd > 0 ? `冷卻中: ${cd}步` : s.desc) : '🔒 未習得'}</div>
-            </div>`;
+        let s = SPELLS[key]; let unlocked = player.unlockedSpells.includes(key); let cd = player.spellCD[key];
+        sUI.innerHTML += `<div class="spell-card ${unlocked?'unlocked':''}"><div class="cd-overlay" style="width:${(cd/s.cd)*100}%"></div><b>[${key}] ${s.name}</b><br>${unlocked ? (cd > 0 ? `CD: ${cd}` : s.desc) : '🔒'}</div>`;
     });
 }
 
 function draw() {
     ctx.clearRect(0,0,750,600);
     for(let y=0; y<GH; y++) for(let x=0; x<GW; x++) {
-        ctx.fillStyle = dungeon[y][x] === 1 ? "#222" : "#080808";
-        ctx.fillRect(x*TILE, y*TILE, TILE, TILE);
+        ctx.fillStyle = dungeon[y][x] === 1 ? "#222" : "#080808"; ctx.fillRect(x*TILE, y*TILE, TILE, TILE);
+        ctx.font = "20px Arial";
         if(dungeon[y][x] === 2) ctx.fillText("🪜", x*TILE+4, y*TILE+22);
         if(dungeon[y][x] === 3) ctx.fillText("🏪", x*TILE+4, y*TILE+22);
         if(dungeon[y][x] === 4) ctx.fillText("🔮", x*TILE+4, y*TILE+22);
     }
-    effects.forEach((eff, i) => {
-        ctx.globalAlpha = eff.life / 10;
-        ctx.fillStyle = eff.type==='fire'?"#f39c12":eff.type==='ice'?"#3498db":eff.type==='sword'?"#ecf0f1":"#9b59b6";
-        ctx.fillRect(eff.x*TILE, eff.y*TILE, TILE, TILE);
-        eff.life--; if(eff.life<=0) effects.splice(i,1);
+    effects.forEach(eff => {
+        ctx.globalAlpha = eff.life / 10; ctx.fillStyle = "#3498db"; ctx.fillRect(eff.x*TILE, eff.y*TILE, TILE, TILE);
+        eff.life--;
     });
-    ctx.globalAlpha = 1; ctx.font = "20px Arial";
-    enemies.forEach(en => { ctx.fillStyle = en.isFrozen > 0 ? "#3498db" : "#e74c3c"; ctx.fillText("👺", en.x*TILE+4, en.y*TILE+22); });
-    ctx.fillText("🧙", player.x*TILE+4, player.y*TILE+22);
+    ctx.globalAlpha = 1;
+    enemies.forEach(en => {
+        ctx.fillStyle = en.isBoss ? "#f1c40f" : "#e74c3c";
+        ctx.fillText(en.isBoss ? "🐲" : "👺", en.x*TILE+4, en.y*TILE+22);
+        
+        // 繪製小血條
+        if(en.showBar) {
+            ctx.fillStyle = "#333"; ctx.fillRect(en.x*TILE + 2, en.y*TILE - 5, 26, 4);
+            ctx.fillStyle = "#2ecc71"; ctx.fillRect(en.x*TILE + 2, en.y*TILE - 5, 26 * (en.hp/en.maxHp), 4);
+        }
+    });
+    ctx.fillStyle = "#fff"; ctx.fillText("🧙", player.x*TILE+4, player.y*TILE+22);
 }
 
-function addLog(m, cl="") {
-    let d = document.createElement('div'); d.style.color = cl==='danger'?'#ff4d4d':cl==='magic'?'#9b59b6':'#aaa';
-    d.innerText = "> " + m;
-    let inner = document.getElementById('log-inner');
-    inner.prepend(d);
-    if(inner.childNodes.length > 50) inner.lastChild.remove();
+function addLog(m, cl) {
+    let d = document.createElement('div'); d.style.color = cl==='danger'?'#f44':'#aaa';
+    d.innerText = "> " + m; document.getElementById('log-inner').prepend(d);
 }
 
 window.addEventListener('keydown', e => {
-    if (document.getElementById('shop-ui').style.display === 'block') return;
+    if(document.getElementById('shop-ui').style.display === 'block') return;
     const k = e.key.toUpperCase();
     if(['W','A','S','D','ARROWUP','ARROWLEFT','ARROWDOWN','ARROWRIGHT'].includes(k)) {
         if(k==='W'||k==='ARROWUP') tryMove(0,-1);
