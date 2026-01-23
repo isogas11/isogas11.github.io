@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>深淵獵手：奧術維度 v7.9</title>
+    <title>深淵獵手：奧術維度 v8.0</title>
     <style>
         :root { --bg: #000; --ui: #1c1c1c; --border: #3498db; --accent: #f1c40f; --wall: #34495e; --floor: #1a121a; }
         body { background: var(--bg); color: #eee; font-family: '微軟正黑體', sans-serif; display: flex; align-items: center; justify-content: center; margin: 0; height: 100vh; overflow: hidden; }
@@ -10,11 +10,8 @@
         .sidebar { width: 340px; background: var(--ui); padding: 15px; border: 2px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; gap: 10px; }
         .stat-line { font-size: 14px; border-bottom: 1px dotted #444; padding-bottom: 4px; display: flex; justify-content: space-between; }
         .stat-val { color: var(--accent); font-weight: bold; }
-        
-        /* 經驗條樣式 */
         .exp-container { width: 100%; height: 8px; background: #333; border-radius: 4px; margin-top: 5px; overflow: hidden; }
         #exp-bar { width: 0%; height: 100%; background: #2ecc71; transition: width 0.3s; }
-
         #game-area { border: 4px solid #444; background: #000; border-radius: 10px; overflow: hidden; position: relative; }
         canvas { display: block; }
         .modal { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 450px; background: #222; border: 3px solid var(--accent); padding: 25px; display: none; z-index: 1000; border-radius: 15px; box-shadow: 0 0 50px rgba(0,0,0,0.9); }
@@ -40,7 +37,6 @@
         <h3 style="text-align:center; margin:0; color:#2ecc71">Lv.<span id="s-lv">1</span> 奧術大師</h3>
         <div class="exp-container"><div id="exp-bar"></div></div>
         <div style="font-size: 10px; text-align: right; color: #888;">EXP: <span id="s-exp-text">0/100</span></div>
-        
         <div class="stat-line"><span>❤️ 生命</span> <span id="s-hp" class="stat-val">100/100</span></div>
         <div class="stat-line"><span>🧪 魔力</span> <span id="s-mp" class="stat-val">30/30</span></div>
         <div class="stat-line"><span>⚔️ 近戰力量</span> <span id="s-atk" class="stat-val">10</span></div>
@@ -60,30 +56,28 @@ const TILE = 26, GW = 40, GH = 30;
 let floor = 1, gold = 100, lv = 1, exp = 0, nextExp = 100;
 let dungeon = [], enemies = [], effects = [], buildings = [];
 let playerSpells = ['Q'], ownedPassives = [];
-
-// 商店價格倍率
 let priceScales = { atk: 60, def: 60, mgk: 60 };
 
 const SPELL_DATA = {
-    'Q': { n: '火球術', mp: 3, cd: 2, sc: 1.5, d: '向十字方向發射', eff: '術力×1.5 傷害', p: 0 },
-    'E': { n: '冰爆術', mp: 7, cd: 4, sc: 1.2, d: '自身 5x5 引爆', eff: '術力×1.2 傷害+凍結', p: 180 },
-    'F': { n: '萬劍訣', mp: 12, cd: 8, sc: 1.0, d: '召喚無數飛劍', eff: '全體敵人普通攻擊 2 次', p: 300 },
-    'V': { n: '聖光治癒', mp: 5, cd: 10, sc: 0, d: '修復身體', eff: '回復 40 點生命', p: 150 }
+    'Q': { n: '火球術', mp: 3, cd: 2, sc: 1.5, d: '十字噴射', eff: '造成 術力×1.5 傷害', p: 0 },
+    'E': { n: '冰爆術', mp: 7, cd: 4, sc: 1.2, d: '5x5凍結', eff: '造成 術力×1.2 傷害並凍結', p: 180 },
+    'F': { n: '萬劍訣', mp: 12, cd: 8, sc: 1.0, d: '全螢幕劍陣', eff: '對全體敵人進行2次普通攻擊', p: 300 },
+    'V': { n: '聖光治癒', mp: 5, cd: 10, sc: 0, d: '回復能量', eff: '回復 40 點生命值', p: 150 }
 };
 
 const PASSIVE_POOL = [
     { id: "p1", n: "🩸 嗜血", d: "近戰擊殺回復 8 點 HP" },
     { id: "p2", n: "🧘 冥想", d: "進入新樓層回復 15 點 MP" },
     { id: "p3", n: "🌵 荊棘", d: "受傷反彈 30% 傷害" },
-    { id: "p7", n: "🛡️ 硬化護甲", d: "固定減少 3 點受到的傷害" },
+    { id: "p7", n: "🛡️ 硬化", d: "固定減少 3 點受到的傷害" },
     { id: "p10", n: "🌪️ 閃避", d: "15% 機率閃避攻擊" },
-    { id: "p20", n: "⚔️ 劍術專精", d: "20% 機率雙倍物理傷害" }
+    { id: "p20", n: "⚔️ 劍魂", d: "20% 機率造成雙倍傷害" }
 ];
 
-let player = { x: 20, y: 15, maxHp: 100, hp: 100, maxMp: 30, mp: 30, atk: 10, mgk: 10, def: 0, cd: {}, stepCount: 0 };
+let player = { x: 20, y: 15, maxHp: 100, hp: 100, maxMp: 30, mp: 30, atk: 10, mgk: 10, def: 0, cd: {} };
 
 function initLevel() {
-    document.getElementById('log').innerHTML = `<div style="color:#f1c40f;">【 第 ${floor} 層 探索開始 】</div>`;
+    document.getElementById('log').innerHTML = `<div style="color:#f1c40f;">【 第 ${floor} 層 】</div>`;
     canvas.width = GW * TILE; canvas.height = GH * TILE;
     dungeon = Array(GH).fill().map(() => Array(GW).fill(1));
     enemies = []; effects = []; buildings = [];
@@ -100,30 +94,24 @@ function initLevel() {
     let count = (mod === 0) ? 1 : (3 + mod);
     for(let i=0; i<count; i++) spawnEnemy(mod === 0);
 
-    if([1,3,5,7,9].includes(mod)) buildings.push(createBuilding("道具店", "🍱"));
-    if([2,4,6,8].includes(mod)) buildings.push(createBuilding("鐵匠鋪", "⚒️"));
-    if([4,8].includes(mod)) buildings.push(createBuilding("魔法商店", "🔮"));
-    if(mod === 5) buildings.push(createBuilding("訓練所", "⚔️"));
+    if([1,3,5,7,9].includes(mod)) buildings.push({type: "道具店", icon: "🍱"});
+    if([2,4,6,8].includes(mod)) buildings.push({type: "鐵匠鋪", icon: "⚒️"});
+    if([4,8].includes(mod)) {
+        buildings.push({type: "魔法商店", icon: "🔮"});
+        buildings.push({type: "訓練所", icon: "⚔️"}); // 4, 8 樓固定出現
+    }
 
-    placeSpec(2); // 梯子
+    placeSpec(2); // 樓梯
     buildings.forEach(b => placeBuilding(b));
     updateUI();
 }
 
-function createBuilding(type, icon) { return { type, icon, x: 0, y: 0 }; }
 function placeBuilding(b) {
     let x, y;
     do { x = 2 + Math.floor(Math.random()*(GW-4)); y = 2 + Math.floor(Math.random()*(GH-4)); } 
     while (dungeon[y][x] !== 0 || Math.abs(x-player.x)+Math.abs(y-player.y) < 5);
     b.x = x; b.y = y;
-    for(let i=-1; i<=1; i++) for(let j=-1; j<=1; j++) dungeon[y+i][x+j] = 0; // 挖開周圍
-}
-
-function spawnEnemy(isBoss) {
-    let x, y;
-    do { x = Math.floor(Math.random()*GW); y = Math.floor(Math.random()*GH); } while(dungeon[y][x] !== 0);
-    let hp = Math.floor(((60 + (floor*12)) * (isBoss ? 15 : 1)) / 2);
-    enemies.push({ x, y, isBoss, hp, maxHp: hp, atk: Math.floor((6+floor)*(isBoss?2:1)/2), emoji: isBoss ? "👑" : ["👺","💀","👻","🦇"][Math.floor(Math.random()*4)], wounded: false, freeze: 0 });
+    for(let i=-1; i<=1; i++) for(let j=-1; j<=1; j++) dungeon[y+i][x+j] = 0;
 }
 
 function placeSpec(v) {
@@ -131,8 +119,14 @@ function placeSpec(v) {
     do { x = Math.floor(Math.random()*GW); y = Math.floor(Math.random()*GH); } 
     while (dungeon[y][x] !== 0 || Math.abs(x-player.x)+Math.abs(y-player.y) < 8);
     dungeon[y][x] = v;
-    // 梯子也要強制挖通周圍
     for(let i=-1; i<=1; i++) for(let j=-1; j<=1; j++) if(y+i>=0 && y+i<GH && x+j>=0 && x+j<GW) dungeon[y+i][x+j] = (i===0 && j===0) ? v : 0;
+}
+
+function spawnEnemy(isBoss) {
+    let x, y;
+    do { x = Math.floor(Math.random()*GW); y = Math.floor(Math.random()*GH); } while(dungeon[y][x] !== 0);
+    let hp = Math.floor(((60 + (floor*12)) * (isBoss ? 15 : 1)) / 2);
+    enemies.push({ x, y, isBoss, hp, maxHp: hp, atk: Math.floor((6+floor)*(isBoss?2:1)/2), emoji: isBoss ? "👑" : ["👺","💀","👻","🦇"][Math.floor(Math.random()*4)], wounded: false, freeze: 0 });
 }
 
 function draw() {
@@ -158,48 +152,16 @@ function draw() {
     ctx.globalAlpha=1; ctx.textAlign="start"; ctx.textBaseline="alphabetic";
 }
 
-function dealDamage(t, isMgk, key) {
-    let crit = (!isMgk && ownedPassives.some(p=>p.id==="p20") && Math.random() < 0.2);
-    let base = isMgk ? player.mgk : player.atk;
-    let sc = (key && key !== 'F') ? SPELL_DATA[key].sc : 1;
-    let dmg = Math.floor(base * sc * (crit ? 2 : 1));
-    t.hp -= dmg; t.wounded = true;
-    if(key === 'E') t.freeze = 2;
-    if(t.hp <= 0) {
-        if(!isMgk && ownedPassives.some(p=>p.id==="p1")) player.hp = Math.min(player.maxHp, player.hp + 8);
-        gold += (t.isBoss ? 500 : 30);
-        gainExp(t.isBoss ? 400 : 40);
-        enemies = enemies.filter(e => e !== t);
-    }
-}
-
-function endTurn() {
-    Object.keys(player.cd).forEach(k => { if(player.cd[k]>0) player.cd[k]--; });
-    enemies.forEach(en => {
-        if(en.freeze > 0) { en.freeze--; return; }
-        let dist = Math.abs(player.x-en.x) + Math.abs(player.y-en.y);
-        if(dist === 1) {
-            let d = Math.max(1, en.atk - player.def);
-            player.hp -= d; addLog(`💥 -${d} 生命`, "#ff4757");
-        } else {
-            let dx = (dist < 8) ? Math.sign(player.x-en.x) : Math.floor(Math.random()*3)-1;
-            let dy = (dist < 8) ? Math.sign(player.y-en.y) : Math.floor(Math.random()*3)-1;
-            let nx = en.x + dx, ny = en.y + dy;
-            if(nx>=0 && nx<GW && ny>=0 && ny<GH && dungeon[ny][nx]===0 && !enemies.some(e=>e!==en && e.x===nx && e.y===ny) && !(player.x===nx && player.y===ny) && !buildings.some(b=>b.x===nx && b.y===ny)) { en.x = nx; en.y = ny; }
-        }
-    });
-    if(player.hp <= 0) { alert("戰敗！"); location.reload(); }
-    updateUI();
-}
-
-function gainExp(a) {
-    exp += a;
-    while(exp >= nextExp) { 
-        lv++; exp -= nextExp; nextExp = Math.floor(nextExp * 1.5); 
-        player.maxHp += 10; player.hp += 10; player.maxMp += 2; player.mp += 2;
-        addLog(`✨ 等級提升至 ${lv}!`, "#2ecc71");
-    }
-    updateUI();
+function handleStairs() {
+    // 回復一定比例生命和魔力
+    let recoverHp = Math.floor(player.maxHp * 0.15);
+    let recoverMp = Math.floor(player.maxMp * 0.15);
+    player.hp = Math.min(player.maxHp, player.hp + recoverHp);
+    player.mp = Math.min(player.maxMp, player.mp + recoverMp);
+    addLog(`🥤 踏上樓梯，回復了 ${recoverHp}HP 與 ${recoverMp}MP`, "#2ecc71");
+    
+    floor++;
+    initLevel();
 }
 
 function updateUI() {
@@ -213,7 +175,7 @@ function updateUI() {
     document.getElementById('s-exp-text').innerText = `${exp}/${nextExp}`;
     document.getElementById('exp-bar').style.width = `${(exp/nextExp)*100}%`;
     let sUI = document.getElementById('spell-ui');
-    sUI.innerHTML = `<b style="color:var(--border);font-size:12px;">📜 技能狀態:</b>`;
+    sUI.innerHTML = `<b style="color:var(--border);font-size:12px;">📜 技能掌握:</b>`;
     playerSpells.forEach(k => { sUI.innerHTML += `<div class="spell-card"><b>[${k}] ${SPELL_DATA[k].n}</b><br><small>CD: ${player.cd[k]||0} | MP: ${SPELL_DATA[k].mp}</small></div>`; });
 }
 
@@ -226,18 +188,17 @@ function openModal(b) {
     if(b.type === "訓練所") {
         options = PASSIVE_POOL.filter(p => !ownedPassives.some(op=>op.id===p.id)).sort(() => 0.5 - Math.random()).slice(0, 3).map(p => ({ n: p.n, d: p.d, f: () => { ownedPassives.push(p); buildings = buildings.filter(ob => ob !== b); }}));
     } else if(b.type === "道具店") {
-        options = [{ n: "🧪 治癒藥水", d: "恢復全生命", p: 40, f: () => player.hp = player.maxHp }, { n: "⚡ 能量劑", d: "恢復 25 MP", p: 30, f: () => player.mp = Math.min(player.maxMp, player.mp+25) }];
+        options = [{ n: "🧪 治癒藥水", d: "回復全生命", p: 40, f: () => player.hp = player.maxHp }, { n: "⚡ 能量劑", d: "恢復 25 MP", p: 30, f: () => player.mp = Math.min(player.maxMp, player.mp+25) }];
     } else if(b.type === "鐵匠鋪") {
         options = [
-            { id: 'atk', n: "⚔️ 磨礪刃口", d: "提升 5 點近戰力量", p: priceScales.atk, f: () => { player.atk += 5; priceScales.atk = Math.floor(priceScales.atk * 1.2); } },
-            { id: 'def', n: "🛡️ 強化甲冑", d: "提升 2 點物理防禦", p: priceScales.def, f: () => { player.def += 2; priceScales.def = Math.floor(priceScales.def * 1.2); } },
-            { id: 'mgk', n: "🔮 注入靈能", d: "提升 5 點魔法術力", p: priceScales.mgk, f: () => { player.mgk += 5; priceScales.mgk = Math.floor(priceScales.mgk * 1.2); } }
+            { n: "⚔️ 磨礪刃口", d: "提升 5 點近戰力量", p: priceScales.atk, f: () => { player.atk += 5; priceScales.atk = Math.floor(priceScales.atk * 1.2); } },
+            { n: "🛡️ 強化甲冑", d: "提升 2 點物理防禦", p: priceScales.def, f: () => { player.def += 2; priceScales.def = Math.floor(priceScales.def * 1.2); } },
+            { n: "🔮 注入靈能", d: "提升 5 點魔法術力", p: priceScales.mgk, f: () => { player.mgk += 5; priceScales.mgk = Math.floor(priceScales.mgk * 1.2); } }
         ];
     } else if(b.type === "魔法商店") {
         Object.keys(SPELL_DATA).forEach(k => { 
-            let s = SPELL_DATA[k];
-            let bought = playerSpells.includes(k);
-            options.push({ n: `📜 ${s.n}`, d: bought ? "--- 已掌握 ---" : s.eff, p: bought ? 0 : s.p, bought: bought, f: () => { if(!bought) playerSpells.push(k); } });
+            let s = SPELL_DATA[k], bought = playerSpells.includes(k);
+            options.push({ n: `📜 ${s.n}`, d: bought ? "--- 已掌握 ---" : s.eff, p: bought ? 0 : s.p, bought, f: () => { if(!bought) playerSpells.push(k); } });
         });
     }
 
@@ -249,8 +210,44 @@ function openModal(b) {
     });
 }
 
+// 借用 v7.9 的戰鬥核心
+function dealDamage(t, isMgk, key) {
+    let crit = (!isMgk && ownedPassives.some(p=>p.id==="p20") && Math.random() < 0.2);
+    let base = isMgk ? player.mgk : player.atk;
+    let sc = (key && key !== 'F') ? SPELL_DATA[key].sc : 1;
+    let dmg = Math.floor(base * sc * (crit ? 2 : 1));
+    t.hp -= dmg; t.wounded = true;
+    if(key === 'E') t.freeze = 2;
+    if(t.hp <= 0) {
+        if(!isMgk && ownedPassives.some(p=>p.id==="p1")) player.hp = Math.min(player.maxHp, player.hp + 8);
+        gold += (t.isBoss ? 500 : 30); gainExp(t.isBoss ? 400 : 40);
+        enemies = enemies.filter(e => e !== t);
+    }
+}
+
+function gainExp(a) { exp += a; while(exp >= nextExp) { lv++; exp -= nextExp; nextExp = Math.floor(nextExp * 1.5); player.maxHp += 10; player.hp += 10; player.maxMp += 2; player.mp += 2; addLog(`✨ 等級提升至 ${lv}!`, "#2ecc71"); } updateUI(); }
 function closeModal() { document.getElementById('game-modal').style.display = 'none'; }
 function addLog(m, c) { let d = document.createElement('div'); if(c) d.style.color=c; d.innerText = "> "+m; let l = document.getElementById('log'); l.prepend(d); }
+
+function endTurn() {
+    Object.keys(player.cd).forEach(k => { if(player.cd[k]>0) player.cd[k]--; });
+    enemies.forEach(en => {
+        if(en.freeze > 0) { en.freeze--; return; }
+        let dist = Math.abs(player.x-en.x) + Math.abs(player.y-en.y);
+        if(dist === 1) {
+            if(ownedPassives.some(p=>p.id==="p10") && Math.random() < 0.15) return;
+            let d = Math.max(1, en.atk - player.def);
+            if(ownedPassives.some(p=>p.id==="p7")) d = Math.max(1, d - 3);
+            player.hp -= d; addLog(`💥 -${d} 生命`, "#ff4757");
+        } else {
+            let dx = Math.sign(player.x-en.x), dy = Math.sign(player.y-en.y);
+            let nx = en.x + (Math.random()>0.5?dx:0), ny = en.y + (Math.random()<=0.5?dy:0);
+            if(nx>=0 && nx<GW && ny>=0 && ny<GH && dungeon[ny][nx]===0 && !enemies.some(e=>e!==en && e.x===nx && e.y===ny) && !(player.x===nx && player.y===ny) && !buildings.some(b=>b.x===nx && b.y===ny)) { en.x = nx; en.y = ny; }
+        }
+    });
+    if(player.hp <= 0) { alert("戰敗！"); location.reload(); }
+    updateUI();
+}
 
 window.addEventListener('keydown', e => {
     if(document.getElementById('game-modal').style.display === 'block') return;
@@ -263,25 +260,22 @@ window.addEventListener('keydown', e => {
             if(en) { dealDamage(en, false, null); endTurn(); }
             else if(b) openModal(b);
             else if(dungeon[ny][nx]===0) { player.x = nx; player.y = ny; endTurn(); }
-            else if(dungeon[ny][nx]===2) { floor++; initLevel(); }
+            else if(dungeon[ny][nx]===2) { handleStairs(); }
         }
     }
     if(SPELL_DATA[k] && playerSpells.includes(k) && player.mp >= SPELL_DATA[k].mp && !player.cd[k]) {
         player.mp -= SPELL_DATA[k].mp; player.cd[k] = SPELL_DATA[k].cd;
-        if(k==='Q') {
-            [[0,-1],[0,1],[-1,0],[1,0]].forEach(dir => { for(let i=1; i<8; i++) {
-                let tx=player.x+dir[0]*i, ty=player.y+dir[1]*i;
-                if(tx<0||tx>=GW||ty<0||ty>=GH||dungeon[ty][tx]===1) break;
-                effects.push({x:tx, y:ty, l:5, c: "#e67e22"});
-                let t = enemies.find(e=>e.x===tx && e.y===ty); if(t) { dealDamage(t, true, 'Q'); break; }
-            }});
-        } else if(k==='E') {
-            for(let x=player.x-2; x<=player.x+2; x++) for(let y=player.y-2; y<=player.y+2; y++) {
-                if(x>=0&&x<GW&&y>=0&&y<GH){ effects.push({x, y, l:10, c:"#3498db"}); let t = enemies.find(e=>e.x===x && e.y===y); if(t) dealDamage(t, true, 'E'); }
-            }
-        } else if(k==='F') {
-            enemies.forEach(en => { effects.push({x:en.x, y:en.y, l:12, c:"#fff"}); dealDamage(en, false, 'F'); dealDamage(en, false, 'F'); });
-        } else if(k==='V') { player.hp = Math.min(player.maxHp, player.hp+40); addLog("✨ 回復 40 生命", "#2ecc71"); }
+        if(k==='Q') { [[0,-1],[0,1],[-1,0],[1,0]].forEach(dir => { for(let i=1; i<8; i++) {
+            let tx=player.x+dir[0]*i, ty=player.y+dir[1]*i;
+            if(tx<0||tx>=GW||ty<0||ty>=GH||dungeon[ty][tx]===1) break;
+            effects.push({x:tx, y:ty, l:5, c: "#e67e22"});
+            let t = enemies.find(e=>e.x===tx && e.y===ty); if(t) { dealDamage(t, true, 'Q'); break; }
+        }}); }
+        else if(k==='E') { for(let x=player.x-2; x<=player.x+2; x++) for(let y=player.y-2; y<=player.y+2; y++) {
+            if(x>=0&&x<GW&&y>=0&&y<GH){ effects.push({x, y, l:10, c:"#3498db"}); let t = enemies.find(e=>e.x===x && e.y===y); if(t) dealDamage(t, true, 'E'); }
+        }}
+        else if(k==='F') { enemies.forEach(en => { effects.push({x:en.x, y:en.y, l:12, c:"#fff"}); dealDamage(en, false, 'F'); dealDamage(en, false, 'F'); }); }
+        else if(k==='V') { player.hp = Math.min(player.maxHp, player.hp+40); addLog("✨ 回復 40 生命", "#2ecc71"); }
         endTurn();
     }
 });
