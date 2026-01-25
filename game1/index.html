@@ -385,6 +385,14 @@
                     gold += gain; exp += gain;
                     addLog(`🎊 快速闖關獎勵 +${gain}！`, "#2ecc71");
                 }
+            // --- 冥想的邏輯 ---
+                if (ownedPassives.some(p => p.id === "p2")) {
+                    player.mp = Math.min(player.maxMp, player.mp + 30);
+                    addLog(`🧘 冥想觸發：回復 30 MP`, "#3498db");
+                    // 彈個數字在頭上
+                    effects.push({ x: player.x, y: player.y, l: 60, c: "#3498db", type: 'text', txt: "+30 MP" });
+                }
+                // -------------------------
                 player.hp = Math.min(player.maxHp, player.hp + player.maxHp * 0.1);
                 player.mp = Math.min(player.maxMp, player.mp + player.maxMp * 0.1);
                 floor++; initLevel(); return;
