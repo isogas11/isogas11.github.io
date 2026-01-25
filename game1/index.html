@@ -619,29 +619,27 @@
 
             effects.forEach((eff) => {
                 ctx.save(); ctx.globalAlpha = Math.max(0, eff.l / 15); ctx.fillStyle = eff.c;
-                if (eff.type === 'text') {
-                    // 1. 固定小字體：不再隨 eff.l 劇烈變動，維持在 14~16px 左右
-                    ctx.font = `bold 15px Arial`;
-                    ctx.fillStyle = eff.c;
-                    ctx.textAlign = "center";
-
-                    // 2. 緩慢淡出：設定總壽命為 60，最後 20 幀才開始透明化
-                    // 這樣字體會有 2/3 的時間是完全實色，視覺停留感更強
-                    let alpha = eff.l > 20 ? 1.0 : eff.l / 20;
-                    ctx.globalAlpha = alpha;
-
-                    // 3. 持續漂移：(60 - eff.l) 是已經過的幀數
-                    // 0.5 是一個緩慢的數值，讓它慢慢往上滑過畫面
-                    let lift = 5 + (20 - eff.l) * 0.4;
-
-                    // 繪製黑色描邊（避免在亮色背景看不清）
-                    ctx.strokeStyle = "rgba(0,0,0," + alpha + ")";
-                    ctx.lineWidth = 2;
-                    ctx.strokeText(eff.txt, eff.x * TILE + 14, eff.y * TILE - lift);
-
-                    // 繪製本體
-                    ctx.fillText(eff.txt, eff.x * TILE + 14, eff.y * TILE - lift);
-                } else if (eff.type === 'mine_exp') {
+            if (eff.type === 'text') {
+                // 固定字體大小
+                ctx.font = `bold 15px Arial`; 
+                ctx.fillStyle = eff.c; 
+                ctx.textAlign = "center";
+                
+                // 根據 eff.l 判斷透明度 (假設最大生命值是 60 或 20)
+                // 我們做個相容性處理：
+                let maxL = eff.l > 20 ? 60 : 20; 
+                let alpha = eff.l > (maxL/3) ? 1.0 : eff.l / (maxL/3);
+                ctx.globalAlpha = alpha;
+            
+                // 關鍵修正：讓 lift 根據其實際生命週期移動
+                // 如果 eff.l 是從 60 開始扣，(maxL - eff.l) 就是「已經過的時間」
+                let lift = 5 + (maxL - eff.l) * 0.4; 
+                
+                ctx.strokeStyle = `rgba(0,0,0,${alpha})`;
+                ctx.lineWidth = 2;
+                ctx.strokeText(eff.txt, eff.x * TILE + 14, eff.y * TILE - lift);
+                ctx.fillText(eff.txt, eff.x * TILE + 14, eff.y * TILE - lift);
+            }else if (eff.type === 'mine_exp') {
                     let prg = (15 - eff.l) / 15;
                     ctx.beginPath(); ctx.arc(eff.x * TILE + 14, eff.y * TILE + 14, prg * TILE * 2, 0, Math.PI * 2); ctx.fill();
                 } else { ctx.fillRect(eff.x * TILE, eff.y * TILE, TILE, TILE); }
