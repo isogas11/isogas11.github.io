@@ -324,19 +324,19 @@
             spawnBuilding(["道具店", "鐵匠鋪", "魔法商店", "訓練所"][(floor - 1) % 4]);
             if (floor % 10 === 0) {
                 let p = walkables[Math.floor(Math.random() * walkables.length)];
-                enemies.push({ x: p.x, y: p.y, hp: 1000 + floor * 100, maxHp: 1000 + floor * 100, atk: 30 + floor, emoji: "🐉", type: "boss", freeze: 0 });
+                enemies.push({ x: p.x, y: p.y, hp: 1000 + floor * 100, maxHp: 1000 + floor * 100, atk: 20 + floor * 1.5, emoji: "🐉", type: "boss", freeze: 0 });
                 addLog(`📢 警告：守層 BOSS 已經出現！`, "#e74c3c");
             }
             if (floor % 5 === 0) {
                 for (let i = 0; i < Math.floor(floor / 5); i++) {
                     let p = walkables[Math.floor(Math.random() * walkables.length)];
-                    enemies.push({ x: p.x, y: p.y, hp: floor * 80, maxHp: floor * 80, atk: 15 + floor, emoji: "💀", type: "elite", freeze: 0 });
+                    enemies.push({ x: p.x, y: p.y, hp: floor * 50, maxHp: floor * 50, atk: 15 + floor * 1.3, emoji: "💀", type: "elite", freeze: 0 });
                 }
             }
             for (let i = 0; i < 10; i++) {
                 let p = walkables[Math.floor(Math.random() * walkables.length)];
                 if (p.x === 20 && p.y === 15) continue;
-                enemies.push({ x: p.x, y: p.y, hp: 30 + floor * 5, maxHp: 30 + floor * 5, atk: 5 + floor, emoji: "👹", type: "normal", freeze: 0 });
+                enemies.push({ x: p.x, y: p.y, hp: 30 + floor * 6, maxHp: 30 + floor * 6, atk: 5 + floor, emoji: "👹", type: "normal", freeze: 0 });
             }
             updateUI();
         }
