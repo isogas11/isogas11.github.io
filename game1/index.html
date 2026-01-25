@@ -514,7 +514,7 @@
         }
         function checkDeath(en) {
             if (en.hp <= 0) {
-                let gain = en.type === 'boss' ? 1000 : (en.type === 'elite' ? 200 : 40);
+                let gain = en.type === 'boss' ? 1000 : (en.type === 'elite' ? 100 : 20);
                 if (ownedPassives.some(p => p.id === "p5")) gain = Math.floor(gain * 1.5);
                 gold += gain; exp += gain;
                 enemies = enemies.filter(e => e !== en);
