@@ -226,7 +226,7 @@
         canvas.width = GW * TILE; canvas.height = GH * TILE;
         let floor = 1, gold = 100, lv = 1, exp = 0, nextExp = 100, tick = 0, floorBonus = 200;
         let dungeon = [], enemies = [], effects = [], buildings = [], stairs = [], traps = [];
-        let player = { x: 20, y: 15, maxHp: 100, hp: 100, maxMp: 30, mp: 30, atk: 12, def: 2, mgk: 12, steps: 0, cd: {}, history: [] };
+        let player = { x: 20, y: 15, maxHp: 100, hp: 100, maxMp: 30, mp: 30, atk: 12, def: 5, mgk: 12, steps: 0, cd: {}, history: [] };
         //初始技能
         let playerSpells = ['Q'], ownedPassives = [], priceScales = { atk: 60, mgk: 60, def: 60, maxMp: 50 };
         const SPELL_DATA = {
