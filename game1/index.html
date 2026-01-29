@@ -224,7 +224,7 @@
         const ctx = canvas.getContext('2d');
         const TILE = 28, GW = 40, GH = 30;
         canvas.width = GW * TILE; canvas.height = GH * TILE;
-        let floor = 1, gold = 100, lv = 1, exp = 0, nextExp = 100, tick = 0, floorBonus = 200;
+        let floor = 1, gold = 100, lv = 1, exp = 0, nextExp = 100, tick = 0, floorBonus = 100;
         let dungeon = [], enemies = [], effects = [], buildings = [], stairs = [], traps = [];
         let player = { x: 20, y: 15, maxHp: 100, hp: 100, maxMp: 30, mp: 30, atk: 12, def: 5, mgk: 12, steps: 0, cd: {}, history: [] };
         //初始技能
@@ -308,7 +308,7 @@
         function initLevel() {
             dungeon = Array(GH).fill().map(() => Array(GW).fill(1));
             enemies = []; buildings = []; stairs = []; traps = [];
-            floorBonus = 200 + (floor * 50);
+            floorBonus = 100 + (floor * 20);
             let cx = 20, cy = 15, walkables = [];
             for (let i = 0; i < 1800; i++) {
                 dungeon[cy][cx] = 0; walkables.push({ x: cx, y: cy });
