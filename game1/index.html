@@ -246,7 +246,7 @@
             { id: "p5", n: "🐱 招財", d: "獲得的金幣數量提升 50%" },
             { id: "p8", n: "🔥 魔法強化", d: "技能傷害效果提升 20%" },
             { id: "p9", n: "✨ 魔力附魔", d: "普攻額外獲得 50% 魔攻傷害" },
-            { id: "p10", n: "💧 汲取魔力", d: "每走 10 步路回復 4% 魔力" }
+            { id: "p10", n: "💧 汲取魔力", d: "每走 10 步路回復 5% 魔力" }
         ];
         //初始被動
         ownedPassives = [PASSIVE_POOL.find(p => p.id === "p10")];
@@ -324,13 +324,13 @@
             spawnBuilding(["道具店", "鐵匠鋪", "魔法商店", "訓練所"][(floor - 1) % 4]);
             if (floor % 10 === 0) {
                 let p = walkables[Math.floor(Math.random() * walkables.length)];
-                enemies.push({ x: p.x, y: p.y, hp: 400 + floor * 120, maxHp: 400 + floor * 120, atk: 10 + floor * 1.6, emoji: "🐉", type: "boss", freeze: 0 });
+                enemies.push({ x: p.x, y: p.y, hp: 400 + floor * 120, maxHp: 400 + floor * 120, atk: 5 + floor * 1.6, emoji: "🐉", type: "boss", freeze: 0 });
                 addLog(`📢 警告：守層 BOSS 已經出現！`, "#e74c3c");
             }
             if (floor % 5 === 0) {
                 for (let i = 0; i < Math.floor(floor / 5); i++) {
                     let p = walkables[Math.floor(Math.random() * walkables.length)];
-                    enemies.push({ x: p.x, y: p.y, hp: floor * 50, maxHp: floor * 50, atk: 12 + floor * 1.4, emoji: "💀", type: "elite", freeze: 0 });
+                    enemies.push({ x: p.x, y: p.y, hp: floor * 50, maxHp: floor * 50, atk: 8 + floor * 1.4, emoji: "💀", type: "elite", freeze: 0 });
                 }
             }
             for (let i = 0; i < 10; i++) {
@@ -405,7 +405,7 @@
                 if (ownedPassives.some(p => p.id === "p10")) {
                     player.steps++;
                     if (player.steps >= 10) {
-                        let recovery = Math.max(1, Math.floor(player.maxMp * 0.04));
+                        let recovery = Math.max(1, Math.floor(player.maxMp * 0.05));
                         player.mp = Math.min(player.maxMp, player.mp + recovery);
 
                         // 彈出藍色數字提示回魔
