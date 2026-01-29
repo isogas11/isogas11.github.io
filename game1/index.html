@@ -241,7 +241,7 @@
         const PASSIVE_POOL = [
             { id: "p1", n: "🩸 嗜血", d: "每次普攻命中回復 1 HP" },
             { id: "p2", n: "🧘 冥想", d: "每層傳送額外回 30 MP" },
-            { id: "p3", n: "⚡ 迅捷", d: "技能冷卻縮短 1 回合" },
+            { id: "p3", n: "⚡ 迅捷", d: "技能冷卻縮短 2 回合" },
             { id: "p4", n: "🎯 精準", d: "20% 機率造成 2 倍暴擊傷害" },
             { id: "p5", n: "🐱 招財", d: "獲得的金幣數量提升 50%" },
             { id: "p8", n: "🔥 魔法強化", d: "技能傷害效果提升 20%" },
@@ -428,7 +428,7 @@
             if (!playerSpells.includes(key) || player.mp < s.mp || (player.cd[key] || 0) > 0) return;
             if (floorBonus > 0) floorBonus--;
             player.mp -= s.mp;
-            player.cd[key] = s.cd - (ownedPassives.some(p => p.id === "p3") ? 1 : 0);
+            player.cd[key] = s.cd - (ownedPassives.some(p => p.id === "p3") ? 2 : 0);
             const bonus = ownedPassives.some(p => p.id === "p8") ? 1.2 : 1.0;
             if (key === 'F') {
                 enemies.forEach(en => {
