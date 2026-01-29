@@ -246,7 +246,7 @@
             { id: "p5", n: "🐱 招財", d: "獲得的金幣數量提升 50%" },
             { id: "p8", n: "🔥 魔法強化", d: "技能傷害效果提升 20%" },
             { id: "p9", n: "✨ 魔力附魔", d: "普攻額外獲得 50% 魔攻傷害" },
-            { id: "p10", n: "💧 汲取魔力", d: "每走 10 步路回復 5% 魔力" }
+            { id: "p10", n: "💧 汲取魔力", d: "每走 5 步路回復 5% 魔力" }
         ];
         //初始被動
         ownedPassives = [PASSIVE_POOL.find(p => p.id === "p10")];
@@ -404,7 +404,7 @@
                 // --- 新增回魔邏輯 ---
                 if (ownedPassives.some(p => p.id === "p10")) {
                     player.steps++;
-                    if (player.steps >= 10) {
+                    if (player.steps >= 5) {
                         let recovery = Math.max(1, Math.floor(player.maxMp * 0.05));
                         player.mp = Math.min(player.maxMp, player.mp + recovery);
 
