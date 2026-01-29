@@ -199,11 +199,11 @@
                 <span id="s-exp-val">0 / 100</span>
             </div>
             <div class="stat-line"><span>❤️ 生命</span> <span id="s-hp" class="val">100/100</span></div>
-            <div class="stat-line"><span>🧪 魔力</span> <span id="s-mp" class="val">30/30</span></div>
+            <div class="stat-line"><span>🧪 魔力</span> <span id="s-mp" class="val">40/40</span></div>
             <div class="stat-line"><span>⚔️ 物攻</span> <span id="s-atk" class="val">10</span></div>
             <div class="stat-line"><span>🔮 魔攻</span> <span id="s-mgk" class="val">10</span></div>
             <div class="stat-line"><span>🛡️ 防禦</span> <span id="s-def" class="val">5</span></div>
-            <div class="stat-line"><span>💰 金幣</span> <span id="s-gold" class="val">100</span></div>
+            <div class="stat-line"><span>💰 金幣</span> <span id="s-gold" class="val">200</span></div>
             <div class="section-title" style="color:var(--accent); border-bottom:1px solid #444; margin-top:10px;">🔮
                 技能快捷鍵</div>
             <div id="skill-list"></div>
@@ -224,7 +224,7 @@
         const ctx = canvas.getContext('2d');
         const TILE = 28, GW = 40, GH = 30;
         canvas.width = GW * TILE; canvas.height = GH * TILE;
-        let floor = 1, gold = 100, lv = 1, exp = 0, nextExp = 100, tick = 0, floorBonus = 100;
+        let floor = 1, gold = 200, lv = 1, exp = 0, nextExp = 100, tick = 0, floorBonus = 100;
         let dungeon = [], enemies = [], effects = [], buildings = [], stairs = [], traps = [];
         let player = { x: 20, y: 15, maxHp: 100, hp: 100, maxMp: 30, mp: 30, atk: 12, def: 5, mgk: 12, steps: 0, cd: {}, history: [] };
         //初始技能
@@ -324,7 +324,7 @@
             spawnBuilding(["道具店", "鐵匠鋪", "魔法商店", "訓練所"][(floor - 1) % 4]);
             if (floor % 10 === 0) {
                 let p = walkables[Math.floor(Math.random() * walkables.length)];
-                enemies.push({ x: p.x, y: p.y, hp: 800 + floor * 120, maxHp: 800 + floor * 120, atk: 10 + floor * 1.8, emoji: "🐉", type: "boss", freeze: 0 });
+                enemies.push({ x: p.x, y: p.y, hp: 400 + floor * 120, maxHp: 400 + floor * 120, atk: 10 + floor * 1.6, emoji: "🐉", type: "boss", freeze: 0 });
                 addLog(`📢 警告：守層 BOSS 已經出現！`, "#e74c3c");
             }
             if (floor % 5 === 0) {
